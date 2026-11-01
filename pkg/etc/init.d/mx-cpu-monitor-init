@@ -1,0 +1,35 @@
+#!/bin/sh
+### BEGIN INIT INFO
+# Provides:          mx-cpu-monitor-init
+# Required-Start:    $local_fs $syslog
+# Required-Stop:     
+# Default-Start:     2 3 4 5
+# Default-Stop:      0 1 6
+# Short-Description: MX CPU Monitor RAPL and governor permissions
+# Description:       Biztositja a CPU fogyasztasmero (RAPL) es a szabalyozo (governor) irasi/olvasasi jogat.
+### END INIT INFO
+
+case "$1" in
+    start|restart|force-reload)
+        # RAPL fogyasztás olvasási jog (0444)
+        for f in /sys/class/powercap/intel-rapl/intel-rapl:*/energy_uj; do
+            if [ -f "$f" ]; then
+                chmod 0444 "$f" 2>/dev/null || true
+            fi
+        done
+        # CPU Kormányzó (governor) írási jog (0666)
+        for f in /sys/devices/system/cpu/cpu*/cpufreq/scaling_governor; do
+            if [ -f "$f" ]; then
+                chmod 0666 "$f" 2>/dev/null || true
+            fi
+        done
+        ;;
+    stop|status)
+        ;;
+    *)
+        echo "Hasznalat: $0 {start|stop|restart}" >&2
+        exit 3
+        ;;
+esac
+
+exit 0

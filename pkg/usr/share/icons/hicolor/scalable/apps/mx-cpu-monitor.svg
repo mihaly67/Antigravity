@@ -1,0 +1,99 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128">
+  <defs>
+    <!-- Background Gradient -->
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1e2429"/>
+      <stop offset="100%" stop-color="#13171a"/>
+    </linearGradient>
+
+    <!-- Chip Body Gradient -->
+    <linearGradient id="chipGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#31363b"/>
+      <stop offset="100%" stop-color="#232629"/>
+    </linearGradient>
+
+    <!-- Core Glow Gradient -->
+    <linearGradient id="coreGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#29b6f6"/>
+      <stop offset="50%" stop-color="#3daee9"/>
+      <stop offset="100%" stop-color="#1d99f3"/>
+    </linearGradient>
+
+    <!-- Pulse/Heat Accent Gradient -->
+    <linearGradient id="accentGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#2ecc71"/>
+      <stop offset="60%" stop-color="#3daee9"/>
+      <stop offset="100%" stop-color="#f39c12"/>
+    </linearGradient>
+
+    <!-- Shadow -->
+    <filter id="dropShadow" x="-10%" y="-10%" width="130%" height="130%">
+      <feDropShadow dx="0" dy="4" stdDeviation="4" flood-color="#000000" flood-opacity="0.5"/>
+    </filter>
+  </defs>
+
+  <!-- Outer rounded background plate (Breeze style) -->
+  <rect x="8" y="8" width="112" height="112" rx="24" fill="url(#bgGrad)" stroke="#3daee9" stroke-width="2" stroke-opacity="0.4" filter="url(#dropShadow)"/>
+
+  <!-- CPU Contact Pins (top, bottom, left, right) -->
+  <!-- Top pins -->
+  <g fill="#7f8c8d" opacity="0.8">
+    <rect x="36" y="16" width="4" height="6" rx="1"/>
+    <rect x="46" y="16" width="4" height="6" rx="1"/>
+    <rect x="56" y="16" width="4" height="6" rx="1"/>
+    <rect x="68" y="16" width="4" height="6" rx="1"/>
+    <rect x="78" y="16" width="4" height="6" rx="1"/>
+    <rect x="88" y="16" width="4" height="6" rx="1"/>
+
+    <!-- Bottom pins -->
+    <rect x="36" y="106" width="4" height="6" rx="1"/>
+    <rect x="46" y="106" width="4" height="6" rx="1"/>
+    <rect x="56" y="106" width="4" height="6" rx="1"/>
+    <rect x="68" y="106" width="4" height="6" rx="1"/>
+    <rect x="78" y="106" width="4" height="6" rx="1"/>
+    <rect x="88" y="106" width="4" height="6" rx="1"/>
+
+    <!-- Left pins -->
+    <rect x="16" y="36" width="6" height="4" rx="1"/>
+    <rect x="16" y="46" width="6" height="4" rx="1"/>
+    <rect x="16" y="56" width="6" height="4" rx="1"/>
+    <rect x="16" y="68" width="6" height="4" rx="1"/>
+    <rect x="16" y="78" width="6" height="4" rx="1"/>
+    <rect x="16" y="88" width="6" height="4" rx="1"/>
+
+    <!-- Right pins -->
+    <rect x="106" y="36" width="6" height="4" rx="1"/>
+    <rect x="106" y="46" width="6" height="4" rx="1"/>
+    <rect x="106" y="56" width="6" height="4" rx="1"/>
+    <rect x="106" y="68" width="6" height="4" rx="1"/>
+    <rect x="106" y="78" width="6" height="4" rx="1"/>
+    <rect x="106" y="88" width="6" height="4" rx="1"/>
+  </g>
+
+  <!-- CPU Substrate Body -->
+  <rect x="22" y="22" width="84" height="84" rx="10" fill="url(#chipGrad)" stroke="#4d565f" stroke-width="1.5"/>
+
+  <!-- Golden index mark on top-left -->
+  <polygon points="26,26 34,26 26,34" fill="#f1c40f"/>
+
+  <!-- Circuit Trace Lines -->
+  <path d="M 36 28 L 36 40 L 46 50" fill="none" stroke="#3daee9" stroke-width="1.5" stroke-linecap="round" opacity="0.6"/>
+  <path d="M 92 28 L 92 40 L 82 50" fill="none" stroke="#3daee9" stroke-width="1.5" stroke-linecap="round" opacity="0.6"/>
+  <path d="M 28 92 L 40 92 L 50 82" fill="none" stroke="#2ecc71" stroke-width="1.5" stroke-linecap="round" opacity="0.6"/>
+  <path d="M 100 92 L 88 92 L 78 82" fill="none" stroke="#2ecc71" stroke-width="1.5" stroke-linecap="round" opacity="0.6"/>
+
+  <!-- Central Heat Spreader / Die -->
+  <rect x="42" y="42" width="44" height="44" rx="6" fill="#1b2024" stroke="url(#coreGrad)" stroke-width="2"/>
+
+  <!-- Multi-core Grid Indicators (4 quadrants representing multi-core monitoring) -->
+  <rect x="47" y="47" width="15" height="15" rx="3" fill="#2ecc71" opacity="0.9"/>
+  <rect x="66" y="47" width="15" height="15" rx="3" fill="#3daee9" opacity="0.9"/>
+  <rect x="47" y="66" width="15" height="15" rx="3" fill="#3daee9" opacity="0.9"/>
+  <rect x="66" y="66" width="15" height="15" rx="3" fill="#f39c12" opacity="0.9"/>
+
+  <!-- Center pulse dot / heartbeat -->
+  <circle cx="64" cy="64" r="3" fill="#ffffff"/>
+
+  <!-- Pulse waveform across bottom of chip -->
+  <path d="M 46 96 L 56 96 L 60 91 L 64 101 L 68 93 L 72 96 L 82 96" fill="none" stroke="#3daee9" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

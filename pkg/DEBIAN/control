@@ -1,0 +1,13 @@
+Package: mx-cpu-monitor
+Version: 1.0.4-1
+Section: utils
+Priority: optional
+Architecture: all
+Depends: python3, python3-pyqt5, hicolor-icon-theme
+Maintainer: Misi <misi@localhost>
+Description: MX CPU Monitor - KDE Plasma stilusú processzor- és fogyasztásfigyelő
+ Könnyűsúlyú, asztali és tálca-alkalmazás, amely valós időben mutatja a CPU magok
+ számát, magonkénti terhelését, órajelét, fogyasztását (Intel RAPL / TDP)
+ és hőmérsékletét. KDE Plasma Breeze stílusú sötét felülettel és vektoros ikonnal.
+ Támogatja a SysVinit és XDG rendszerindítást.
+

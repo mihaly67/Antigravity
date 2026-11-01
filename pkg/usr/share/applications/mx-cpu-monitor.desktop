@@ -1,0 +1,14 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=MX CPU Monitor
+GenericName=CPU Monitor
+Comment=KDE Plasma stílusú processzorfigyelő: magok, órajelek, fogyasztás és hőmérséklet
+Exec=mx-cpu-monitor
+Icon=mx-cpu-monitor
+Terminal=false
+Categories=System;Monitor;Qt;KDE;
+Keywords=cpu;htop;terhelés;hőmérséklet;fogyasztás;órajel;monitor;
+StartupNotify=true
+StartupWMClass=mx-cpu-monitor
+

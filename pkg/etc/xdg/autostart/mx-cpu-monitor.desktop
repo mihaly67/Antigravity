@@ -1,0 +1,12 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=MX CPU Monitor (Tálca)
+Comment=MX CPU Monitor indítása a tálcán
+Exec=mx-cpu-monitor --minimized
+Icon=mx-cpu-monitor
+Terminal=false
+Categories=System;Monitor;
+X-GNOME-Autostart-enabled=true
+X-KDE-autostart-after=panel
+

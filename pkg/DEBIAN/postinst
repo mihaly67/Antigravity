@@ -1,0 +1,36 @@
+#!/bin/sh
+set -e
+
+# Ikon gyorsítótár frissítése
+if which gtk-update-icon-cache >/dev/null 2>&1; then
+    gtk-update-icon-cache -f -q /usr/share/icons/hicolor || true
+fi
+
+# SysVinit szolgáltatás beállítása
+if which update-rc.d >/dev/null 2>&1; then
+    update-rc.d mx-cpu-monitor-init defaults >/dev/null 2>&1 || true
+    if [ -x /etc/init.d/mx-cpu-monitor-init ]; then
+        /etc/init.d/mx-cpu-monitor-init start >/dev/null 2>&1 || true
+    fi
+fi
+
+# Udev szabályok érvényesítése
+if which udevadm >/dev/null 2>&1; then
+    udevadm control --reload-rules 2>/dev/null || true
+fi
+
+# RAPL energiajogosultság azonnali beállítása
+for f in /sys/class/powercap/intel-rapl/intel-rapl:*/energy_uj; do
+    if [ -f "$f" ]; then
+        chmod 0444 "$f" 2>/dev/null || true
+    fi
+done
+
+# CPU Kormányzó írási jogosultság azonnali beállítása
+for f in /sys/devices/system/cpu/cpu*/cpufreq/scaling_governor; do
+    if [ -f "$f" ]; then
+        chmod 0666 "$f" 2>/dev/null || true
+    fi
+done
+
+exit 0

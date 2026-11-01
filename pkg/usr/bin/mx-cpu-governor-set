@@ -1,0 +1,13 @@
+#!/bin/sh
+GOV="$1"
+if [ -z "$GOV" ]; then
+    echo "Használat: $0 <kormányzó_neve>" >&2
+    exit 1
+fi
+
+for f in /sys/devices/system/cpu/cpu*/cpufreq/scaling_governor; do
+    if [ -f "$f" ]; then
+        echo "$GOV" > "$f" 2>/dev/null || true
+    fi
+done
+
