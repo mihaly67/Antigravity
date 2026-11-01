@@ -1,0 +1,16 @@
+# Token optimization - ignore build artifacts, logs and binary files
+*.deb
+*.tar.gz
+*.zip
+*.iso
+*.png
+*.jpg
+*.jpeg
+*.svg
+__pycache__/
+*.py[cod]
+.git/
+.cache/
+build/
+dist/
+*.log

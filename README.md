@@ -17,3 +17,4 @@ Könnyűsúlyú, alacsony erőforrás-igényű rendszermonitor és CPU governor 
 ```bash
 python3 main.py
 ```
+
