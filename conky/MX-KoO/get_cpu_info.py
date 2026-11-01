@@ -1,13 +1,29 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Könnyűsúlyú CPU mag- és hőmérséklet-kinyerő Conky-hoz.
-Közvetlenül a /sys/class/hwmon interfészt olvassa (0 subprocess, <1ms futási idő).
+Könnyűsúlyú CPU mag- és szál-kinyerő Conky-hoz.
+Közvetlenül a /sys/class/hwmon kernel interfészt olvassa (0 subprocess overhead).
+Pontos összerendelés a 10 fizikai mag és a 20 logikai szál (Hyper-Threading) között.
 """
 
 import sys
 import glob
 import os
+
+# Fizikai magok és logikai szálak pontos megfeleltetése az E5-2618L v4 architektúrán
+# raw_core_id -> (megjelenített mag sorszám 1-10, 1. szál Conky index, 2. szál Conky index)
+CORE_MAP = {
+    0: (1, 1, 11),
+    1: (2, 2, 12),
+    2: (3, 3, 13),
+    3: (4, 4, 14),
+    4: (5, 5, 15),
+    8: (6, 6, 16),
+    9: (7, 7, 17),
+    10: (8, 8, 18),
+    11: (9, 9, 19),
+    12: (10, 10, 20)
+}
 
 def get_coretemp():
     for h in glob.glob('/sys/class/hwmon/hwmon*'):
@@ -21,7 +37,7 @@ def get_coretemp():
 
 def main():
     hw = get_coretemp()
-    cores = []
+    temps = {}
     pkg_temp = "N/A"
 
     if hw:
@@ -33,7 +49,7 @@ def main():
                     val = int(fi.read().strip()) // 1000
                     if lbl.startswith('Core '):
                         cid = int(lbl.split()[1])
-                        cores.append((cid, val))
+                        temps[cid] = val
                     elif 'Package' in lbl:
                         pkg_temp = f"{val}°C"
             except Exception:
@@ -43,26 +59,16 @@ def main():
         print(pkg_temp)
         return
 
-    # Default or --cores: format 2-column grid
-    cores.sort(key=lambda x: x[0])
-    if not cores:
-        # Fallback if no coretemp
-        for i in range(1, 5):
-            print(f"${{font Open Sans:size=8}}${{color}}Core {i-1}:${{alignr}}${{color2}}${{cpubar 5,120 cpu{i}}}${{color}}")
-        return
-
-    mid = (len(cores) + 1) // 2
-    left = cores[:mid]
-    right = cores[mid:]
-
-    for i in range(len(left)):
-        c_l, t_l = left[i]
-        cpu_idx_l = i + 1
-        line = f"${{font Open Sans:size=8}}${{color}}C{c_l}: ${{color3}}{t_l}°C ${{color2}}${{cpubar 5,45 cpu{cpu_idx_l}}}${{color}}"
-        if i < len(right):
-            c_r, t_r = right[i]
-            cpu_idx_r = mid + i + 1
-            line += f"${{goto 146}}${{color}}C{c_r}: ${{color3}}{t_r}°C ${{color2}}${{cpubar 5,45 cpu{cpu_idx_r}}}${{color}}"
+    # Megjelenítés: 10 fizikai mag és a 20 logikai szál
+    for raw_id in sorted(CORE_MAP.keys(), key=lambda x: CORE_MAP[x][0]):
+        disp_num, t1, t2 = CORE_MAP[raw_id]
+        temp = temps.get(raw_id, 0)
+        line = (
+            f"${{font Open Sans:size=8}}${{color}}Mag {disp_num:02d}: "
+            f"${{color3}}{temp:2d}°C${{color}}  "
+            f"${{goto 88}}${{color}}Sz{t1:02d}: ${{color2}}${{cpubar 5,50 cpu{t1}}}${{color}}  "
+            f"${{goto 182}}${{color}}Sz{t2:02d}: ${{color2}}${{cpubar 5,50 cpu{t2}}}${{color}}"
+        )
         print(line)
 
 if __name__ == '__main__':

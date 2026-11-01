@@ -40,13 +40,12 @@ conky.config = {
 	color3 = '18FF00',
 	color4 = '66aaff',
 	
--- network $templates
+-- network templates
     if_up_strictness = 'address',
 	template0 = 'eth0',
 	template1 = 'eth1',
 	template2 = 'wlan0',
 	template3 = 'wlan1',
-
 };
 
 -- fluxbox adjustment
@@ -61,90 +60,86 @@ conky.text = [[
 
 ${alignc -0}${font Open Sans:size=15}${color0}MX Linux$font$color
 ${voffset 4}$color${font}${font Open Sans:size=10}$alignr${voffset -15}$font
-${voffset -4}${color0}${font Open Sans:Bold:size=10}DATE ${color1}${hr 3}$color$font
-$color${font Open Sans:size=10}$alignc${time %A}, ${if_match "pmfix${time %p}" == "pmfix"}${time %d %B %Y    %k:%M}${else}${time %d %B %Y    %l:%M %P}${endif}$font$color 
+${voffset -4}${color0}${font Open Sans:Bold:size=10}DÁTUM ÉS IDŐ ${color1}${hr 3}$color$font
+$color${font Open Sans:size=9}$alignc${time %Y. %B %d., %A  —  %H:%M}$font$color 
 
-# SYS
-${voffset -8}${font Open Sans:Bold:size=10}${color0}SYSTEM ${color EC0100}${hr 3}$color${font}
-Kernel$alignr$sysname $kernel 
-OS $alignr${head /etc/mx-version 1 86400}\
-Uptime $alignr $uptime
+# RENDSZER
+${voffset -8}${font Open Sans:Bold:size=10}${color0}RENDSZER ${color EC0100}${hr 3}$color${font}
+Kernel:$alignr$sysname $kernel 
+Kiadás:$alignr${head /etc/mx-version 1 86400}\
+Futásidő:$alignr$uptime
 
-# MEMORY
-${voffset -8}${font Open Sans:Bold:size=10}${color0}MEMORY ${color EC0100}${hr 3}
+# MEMÓRIA
+${voffset -8}${font Open Sans:Bold:size=10}${color0}MEMÓRIA (RAM) ${color EC0100}${hr 3}
 ${color2}${membar 4} 
-$color${font Open Sans:bold:size=8}Used:$alignr$font $mem of $memmax
-$color${font Open Sans:bold:size=8}Free:$alignr$font $memeasyfree
-$color${font Open Sans:bold:size=8}Buffers / Cached:$alignr$font$buffers / $cached
+$color${font Open Sans:bold:size=8}Használt / Összes:$alignr$font $mem / $memmax
+$color${font Open Sans:bold:size=8}Szabad memória:$alignr$font $memeasyfree
+$color${font Open Sans:bold:size=8}Puffer / Gyorsítótár:$alignr$font$buffers / $cached
 
-${voffset -4}${font Open Sans:Bold:size=9}${color0}TOP MEMORY${font}${alignr}${offset -60}${color0}RAM${color}   ${color0}CPU${color}
+${voffset -4}${font Open Sans:Bold:size=8}${color0}FOLYAMATOK (MEMÓRIA)${font}${alignr}${offset -55}${color0}RAM${color}     ${color0}CPU${color}
 ${top_mem name 1}${alignr}${top_mem cpu 1} %
-${voffset -13}${alignr}${offset -60}${top_mem mem 1} %
+${voffset -13}${alignr}${offset -55}${top_mem mem 1} %
 ${top_mem name 2}${alignr}${top_mem cpu 2} %
-${voffset -13}${alignr}${offset -60}${top_mem mem 2} %
+${voffset -13}${alignr}${offset -55}${top_mem mem 2} %
 ${top_mem name 3}${alignr}${top_mem cpu 3} %
-${voffset -13}${alignr}${offset -60}${top_mem mem 3} %
-${top_mem name 4}${alignr}${top_mem cpu 4} %
-${voffset -13}${alignr}${offset -60}${top_mem mem 4} %
+${voffset -13}${alignr}${offset -55}${top_mem mem 3} %
 
-# CPU
-${voffset -8}${font Open Sans:Bold:size=10}${color0}CPU ${color EC0100}${hr 3}
-$color${font Open Sans:bold:size=8}Intel Xeon E5-2618L v4 (10C/20T)$font$alignr${freq_g}GHz  ${color2}${cpu cpu0}%$color
-${font Open Sans:size=8}Csomag: ${color3}${execi 2 python3 /home/misi/.conky/MX-KoO/get_cpu_info.py --pkg}${color}$alignr${color2}${cpubar 4,160 cpu0}${color}
-${execpi 2 python3 /home/misi/.conky/MX-KoO/get_cpu_info.py --cores}
+# PROCESSZOR
+${voffset -8}${font Open Sans:Bold:size=10}${color0}PROCESSZOR (CPU) ${color EC0100}${hr 3}
+$color${font Open Sans:bold:size=8}Intel Xeon E5-2618L v4 (10 Mag / 20 Szál)$font
+Órajel: ${freq_g} GHz$alignr Összterhelés: ${color2}${cpu cpu0}%$color
+Processzor (Tokozás): ${color3}${execi 2 python3 /home/misi/.conky/MX-KoO/get_cpu_info.py --pkg}${color}$alignr${color2}${cpubar 4,130 cpu0}${color}
+${voffset -2}${font Open Sans:Bold:size=8}${color0}Magok & Hőmérséklet:${alignr}${offset -62}1. Szál      2. Szál$color$font
+${execpi 2 python3 /home/misi/.conky/MX-KoO/get_cpu_info.py}
 
-${voffset -4}${font Open Sans:Bold:size=9}${color0}TOP CPU${font}${alignr}${offset -60}${color0}RAM${color}   ${color0}CPU${color}
+${voffset -4}${font Open Sans:Bold:size=8}${color0}FOLYAMATOK (CPU)${font}${alignr}${offset -55}${color0}RAM${color}     ${color0}CPU${color}
 ${top name 1}${alignr}${top cpu 1} %
-${voffset -13}${alignr}${offset -60}${top mem 1} %
+${voffset -13}${alignr}${offset -55}${top mem 1} %
 ${top name 2}${alignr}${top cpu 2} %
-${voffset -13}${alignr}${offset -60}${top mem 2} %
+${voffset -13}${alignr}${offset -55}${top mem 2} %
 ${top name 3}${alignr}${top cpu 3} %
-${voffset -13}${alignr}${offset -60}${top mem 3} %
-${top name 4}${alignr}${top cpu 4} %
-${voffset -13}${alignr}${offset -60}${top mem 4} %
+${voffset -13}${alignr}${offset -55}${top mem 3} %
 
-# NETWORK
-${voffset -8}${font Open Sans:Bold:size=10}${color0}NETWORK ${color EC0100}${hr 3}$color
+# HÁLÓZAT
+${voffset -8}${font Open Sans:Bold:size=10}${color0}HÁLÓZAT ${color EC0100}${hr 3}$color
 ${if_up $template0}\
-${voffset -6}${font Open Sans:bold:size=8}Ethernet ($template0) $font$alignr ${addr $template0}
-Fel: ${upspeedf $template0} kb/s $alignr ${totalup $template0}
+${voffset -6}${font Open Sans:bold:size=8}Vezetékes hálózat ($template0) $font$alignr ${addr $template0}
+Feltöltés: ${upspeedf $template0} kb/s $alignr ${totalup $template0}
 ${voffset -14}$alignc${upspeedgraph $template0 10,120 ff0000 0000ff}
-Le:  ${downspeedf $template0} kb/s $alignr ${totaldown $template0}
+Letöltés:  ${downspeedf $template0} kb/s $alignr ${totaldown $template0}
 ${voffset -14}$alignc${downspeedgraph $template0 10,120 ff0000 0000ff}
 ${else}${if_up $template1}\
-${voffset -6}${font Open Sans:bold:size=8}Ethernet ($template1) $font$alignr ${addr $template1}
-Fel: ${upspeedf $template1} kb/s $alignr ${totalup $template1}
+${voffset -6}${font Open Sans:bold:size=8}Vezetékes hálózat ($template1) $font$alignr ${addr $template1}
+Feltöltés: ${upspeedf $template1} kb/s $alignr ${totalup $template1}
 ${voffset -14}$alignc${upspeedgraph $template1 10,120 ff0000 0000ff}
-Le:  ${downspeedf $template1} kb/s $alignr ${totaldown $template1}
+Letöltés:  ${downspeedf $template1} kb/s $alignr ${totaldown $template1}
 ${voffset -14}$alignc${downspeedgraph $template1 10,120 ff0000 0000ff}
 ${endif}${endif}\
 ${if_up $template2}\
-${voffset -6}${font Open Sans:bold:size=8}WiFi ($template2) $font${wireless_bitrate $template2} $alignr ${addr $template2}
+${voffset -6}${font Open Sans:bold:size=8}Vezeték nélküli (WiFi - $template2) $font${wireless_bitrate $template2} $alignr ${addr $template2}
 ${voffset -14}$alignc${wireless_essid $template2}
 $alignc${color2}${wireless_link_bar 4,260 $template2}${color E9E9E9} 
-Fel: ${upspeedf $template2} kb/s $alignr ${totalup $template2}
+Feltöltés: ${upspeedf $template2} kb/s $alignr ${totalup $template2}
 ${voffset -14}$alignc${upspeedgraph $template2 10,120 ff0000 0000ff}
-Le:  ${downspeedf $template2} kb/s $alignr ${totaldown $template2}
+Letöltés:  ${downspeedf $template2} kb/s $alignr ${totaldown $template2}
 ${voffset -14}$alignc${downspeedgraph $template2 10,120 ff0000 0000ff}
 ${else}${if_up $template3}\
-${voffset -6}${font Open Sans:bold:size=8}WiFi ($template3) $font${wireless_bitrate $template3} $alignr ${addr $template3}
+${voffset -6}${font Open Sans:bold:size=8}Vezeték nélküli (WiFi - $template3) $font${wireless_bitrate $template3} $alignr ${addr $template3}
 ${voffset -14}$alignc${wireless_essid $template3}
 $alignc${color2}${wireless_link_bar 4,260 $template3}${color E9E9E9} 
-Fel: ${upspeedf $template3} kb/s $alignr ${totalup $template3}
+Feltöltés: ${upspeedf $template3} kb/s $alignr ${totalup $template3}
 ${voffset -14}$alignc${upspeedgraph $template3 10,120 ff0000 0000ff}
-Le:  ${downspeedf $template3} kb/s $alignr ${totaldown $template3}
+Letöltés:  ${downspeedf $template3} kb/s $alignr ${totaldown $template3}
 ${voffset -14}$alignc${downspeedgraph $template3 10,120 ff0000 0000ff}
 ${endif}${endif}
-# HDD
-${voffset -8}${font Open Sans:Bold:size=10}${color0}DISKS ${color EC0100}${hr 3}
-$color${font Open Sans:bold:size=8}\
-ROOT$font                    ${color}${fs_used /} / ${fs_size /}$alignr${fs_type /}
-${color aaddff}write: ${diskio_write }${color6}${alignc -20} read:${diskio_read }$color$alignr ${fs_used_perc /}%   
-${color2}${fs_bar /}${color}
+# TÁROLÓK
+${voffset -8}${font Open Sans:Bold:size=10}${color0}TÁROLÓK (LEMEZEK) ${color EC0100}${hr 3}
+$color${font Open Sans:bold:size=8}Rendszer gyökér (/)$font$alignr${fs_used /} / ${fs_size /} (${fs_type /})
+Írás: ${diskio_write }${alignc -20} Olvasás: ${diskio_read }$alignr Használt: ${fs_used_perc /}%
+${color2}${fs_bar 4 /}${color}
 ${if_mounted /home}
-${voffset -10}${font Open Sans:bold:size=8}\
-HOME $font $alignr${fs_type /home}
-${fs_used /home} / ${fs_size /home} $alignr ${fs_used_perc /home} % 
-${fs_bar /home}
+${voffset -6}${font Open Sans:bold:size=8}Felhasználói tár (/home)$font$alignr${fs_used /home} / ${fs_size /home} (${fs_type /home})
+$alignr Használt: ${fs_used_perc /home}%
+${color2}${fs_bar 4 /home}${color}
 ${endif}
 ]];
