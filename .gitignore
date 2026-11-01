@@ -1,7 +1,6 @@
 __pycache__/
 *.py[cod]
 *$py.class
-*.deb
 *.log
 .DS_Store
 .vscode/
