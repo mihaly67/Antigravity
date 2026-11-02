@@ -110,8 +110,9 @@ ${voffset -2}Letöltés:  ${downspeedf $template3} kb/s $alignr ${totaldown $tem
 ${voffset -13}$alignc${downspeedgraph $template3 8,110 ff0000 0000ff}\
 ${endif}${endif}
 ${voffset -2}${font Open Sans:Bold:size=9}${color0}TÁROLÓK (LEMEZEK) ${color1}${hr 3}$color$font
-${voffset -1}${font Open Sans:bold:size=8}Rendszer (/)$font$alignr${fs_used /} / ${fs_size /} (${fs_type /} • ${fs_used_perc /}%)
-${voffset -2}Írás: ${diskio_write}${alignc -15}Olvasás: ${diskio_read}$alignr${color2}${fs_bar 4,95 /}${color}
+${voffset -1}${font Open Sans:bold:size=8}Rendszer (/)$font$alignr${fs_used /} / ${fs_size /} (${fs_used_perc /}%)
+${voffset -2}Írás: ${diskio_write}${alignc -10}Olvasás: ${diskio_read}$alignr${fs_type /}
+${voffset -3}${color2}${fs_bar 4 /}${color}
 ${if_mounted /home}\
 ${voffset -2}${font Open Sans:bold:size=8}Felhasználói (/home)$font$alignr${fs_used /home} / ${fs_size /home} (${fs_used_perc /home}%)
 ${voffset -3}${color2}${fs_bar 4 /home}${color}\
