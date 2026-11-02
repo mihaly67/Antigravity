@@ -86,11 +86,11 @@ ${voffset -13}${alignr}${offset -55}${top_mem mem 3} %
 
 # PROCESSZOR
 ${voffset -8}${font Open Sans:Bold:size=10}${color0}PROCESSZOR (CPU) ${color EC0100}${hr 3}
-$color${font Open Sans:bold:size=8}${execi 86400 python3 /home/misi/.conky/MX-KoO/get_cpu_info.py --header}$font
+$color${font Open Sans:bold:size=8}${execi 86400 python3 ~/.conky/MX-KoO/get_cpu_info.py --header}$font
 Órajel: ${freq_g} GHz$alignr Összterhelés: ${color2}${cpu cpu0}%$color
-Processzor hőmérséklet: ${color3}${execi 2 python3 /home/misi/.conky/MX-KoO/get_cpu_info.py --pkg}${color}$alignr${color2}${cpubar 4,110 cpu0}${color}
+Processzor hőmérséklet: ${color3}${execi 2 python3 ~/.conky/MX-KoO/get_cpu_info.py --pkg}${color}$alignr${color2}${cpubar 4,110 cpu0}${color}
 ${voffset -2}${font Open Sans:Bold:size=8}${color0}Magok & Hőmérséklet:${alignr}${offset -62}1. Szál      2. Szál$color$font
-${execpi 2 python3 /home/misi/.conky/MX-KoO/get_cpu_info.py}
+${execpi 2 python3 ~/.conky/MX-KoO/get_cpu_info.py}
 
 ${voffset -4}${font Open Sans:Bold:size=8}${color0}FOLYAMATOK (CPU)${font}${alignr}${offset -55}${color0}RAM${color}     ${color0}CPU${color}
 ${top name 1}${alignr}${top cpu 1} %
@@ -142,5 +142,5 @@ ${voffset -6}${font Open Sans:bold:size=8}Felhasználói tár (/home)$font$align
 $alignr Használt: ${fs_used_perc /home}%
 ${color2}${fs_bar 4 /home}${color}
 ${endif}
-${execpi 5 python3 /home/misi/.conky/MX-KoO/get_disk_info.py}
+${execpi 5 python3 ~/.conky/MX-KoO/get_disk_info.py}
 ]];

@@ -124,6 +124,7 @@ def main():
         print("${font Open Sans:size=8}CPU topológia nem elérhető$font")
         return
 
+    voff = "${voffset -2}" if len(cores) >= 16 else ""
     for idx, (cid, threads) in enumerate(cores, 1):
         temp_val = temps.get(cid, None)
         temp_str = f"{temp_val:2d}°C" if temp_val is not None else "--°C"
@@ -131,7 +132,7 @@ def main():
         if len(threads) == 2:
             t1, t2 = threads[0], threads[1]
             line = (
-                f"${{font Open Sans:size=8}}${{color}}Mag {idx:02d}: "
+                f"{voff}${{font Open Sans:size=8}}${{color}}Mag {idx:02d}: "
                 f"${{color3}}{temp_str}${{color}}  "
                 f"${{goto 88}}${{color}}Sz{t1:02d}: ${{color2}}${{cpubar 5,50 cpu{t1}}}${{color}}  "
                 f"${{goto 182}}${{color}}Sz{t2:02d}: ${{color2}}${{cpubar 5,50 cpu{t2}}}${{color}}"
