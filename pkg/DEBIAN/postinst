@@ -6,8 +6,18 @@ if which gtk-update-icon-cache >/dev/null 2>&1; then
     gtk-update-icon-cache -f -q /usr/share/icons/hicolor || true
 fi
 
-# SysVinit szolgáltatás beállítása
+# Perzisztens kormányzó konfigurációs fájl előkészítése
+mkdir -p /usr/share/mx-cpu-monitor 2>/dev/null || true
+if [ ! -f /usr/share/mx-cpu-monitor/governor.conf ]; then
+    if [ -f /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor ]; then
+        cat /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor > /usr/share/mx-cpu-monitor/governor.conf 2>/dev/null || true
+    fi
+fi
+chmod 0666 /usr/share/mx-cpu-monitor/governor.conf 2>/dev/null || true
+
+# SysVinit szolgáltatás beállítása és indítása
 if which update-rc.d >/dev/null 2>&1; then
+    update-rc.d -f mx-cpu-monitor-init remove >/dev/null 2>&1 || true
     update-rc.d mx-cpu-monitor-init defaults >/dev/null 2>&1 || true
     if [ -x /etc/init.d/mx-cpu-monitor-init ]; then
         /etc/init.d/mx-cpu-monitor-init start >/dev/null 2>&1 || true

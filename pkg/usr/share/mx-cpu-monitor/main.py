@@ -23,7 +23,7 @@ from PyQt5.QtGui import QIcon, QFont, QPixmap, QColor, QBrush
 from metrics import SystemMetrics, XEON_ULTIMATE_CATALOG, XEON_SPECS_DB
 
 APP_NAME = "MX CPU Monitor"
-APP_VERSION = "1.0.5"
+APP_VERSION = "1.0.6"
 
 # Kormányzó leírások magyarul
 GOV_TOOLTIPS = {
@@ -959,7 +959,7 @@ class MainWindow(QMainWindow):
 
     def update_gov_tooltip(self, gov):
         tip = GOV_TOOLTIPS.get(gov, "Linux CPU frekvencia szabályozó.")
-        self.combo_gov.setToolTip(f"CPU Kormányzó: {gov}\n{tip}")
+        self.combo_gov.setToolTip(f"CPU Kormányzó: {gov} (SysVinit boot-hoz rögzítve)\n{tip}")
 
     def on_governor_combo_changed(self, idx):
         if self.is_updating_gov_ui:
@@ -968,7 +968,7 @@ class MainWindow(QMainWindow):
         self.apply_governor(gov)
 
     def apply_governor(self, gov):
-        ok = self.metrics.set_governor(gov)
+        ok = self.metrics.set_governor(gov, save=True)
         self.update_gov_tooltip(gov)
 
         if hasattr(self, 'gov_actions'):
@@ -980,7 +980,12 @@ class MainWindow(QMainWindow):
             self.is_updating_gov_ui = False
 
         if ok:
-            self.tray.showMessage("CPU Kormányzó", f"Aktív profil: {gov}", QSystemTrayIcon.Information, 1500)
+            self.tray.showMessage(
+                "CPU Kormányzó (SysVinit)",
+                f"Aktív profil: {gov} (Rögzítve a következő rendszerindításhoz)",
+                QSystemTrayIcon.Information,
+                1800
+            )
         self.refresh_metrics()
 
     def rebuild_core_grid(self, cols):

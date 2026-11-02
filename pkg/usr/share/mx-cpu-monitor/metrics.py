@@ -342,6 +342,10 @@ def get_cpu_specification(model_name, n_cores, detected_tdp=65.0):
     }
 
 
+GOV_SYSTEM_CONF = '/usr/share/mx-cpu-monitor/governor.conf'
+GOV_USER_CONF = os.path.expanduser('~/.config/mx-cpu-monitor/governor.conf')
+
+
 class SystemMetrics:
     def __init__(self):
         self.prev_stat = self._read_stat()
@@ -354,6 +358,7 @@ class SystemMetrics:
         self.thread_topology, self.thread_to_core_id = self._detect_topology()
         self.tdp = self._detect_tdp()
         self.specs = get_cpu_specification(self.cpu_model, self.core_count, self.tdp)
+        self._init_persistent_governor()
 
     def _detect_cpu_model(self):
         model = "Ismeretlen CPU"
@@ -489,7 +494,46 @@ class SystemMetrics:
                 pass
         return 'ondemand'
 
-    def set_governor(self, gov_name):
+    def get_saved_governor(self):
+        for p in (GOV_SYSTEM_CONF, GOV_USER_CONF):
+            if os.path.exists(p):
+                try:
+                    with open(p, 'r') as f:
+                        val = f.read().strip()
+                        if val:
+                            return val
+                except Exception:
+                    pass
+        return None
+
+    def save_governor_preference(self, gov_name):
+        if not gov_name:
+            return
+        try:
+            with open(GOV_SYSTEM_CONF, 'w') as f:
+                f.write(f"{gov_name}\n")
+        except Exception:
+            pass
+        try:
+            os.makedirs(os.path.dirname(GOV_USER_CONF), exist_ok=True)
+            with open(GOV_USER_CONF, 'w') as f:
+                f.write(f"{gov_name}\n")
+        except Exception:
+            pass
+
+    def _init_persistent_governor(self):
+        avail = self.get_available_governors()
+        saved = self.get_saved_governor()
+        curr = self.get_current_governor()
+        if saved and saved in avail:
+            if curr != saved:
+                self.set_governor(saved, save=True)
+            else:
+                self.save_governor_preference(saved)
+        else:
+            self.save_governor_preference(curr)
+
+    def set_governor(self, gov_name, save=True):
         gov_files = glob.glob('/sys/devices/system/cpu/cpu*/cpufreq/scaling_governor')
         if not gov_files:
             return False
@@ -508,11 +552,14 @@ class SystemMetrics:
 
         if direct_failed:
             try:
-                cmd = f'for f in /sys/devices/system/cpu/cpu*/cpufreq/scaling_governor; do echo "{gov_name}" > "" 2>/dev/null; done'
+                cmd = f'for f in /sys/devices/system/cpu/cpu*/cpufreq/scaling_governor; do echo "{gov_name}" > "$f" 2>/dev/null; done'
                 subprocess.run(['pkexec', 'sh', '-c', cmd], check=True)
-                return True
+                success = True
             except Exception:
                 return False
+
+        if success and save:
+            self.save_governor_preference(gov_name)
 
         return success
 

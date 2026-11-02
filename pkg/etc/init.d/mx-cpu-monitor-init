@@ -1,33 +1,111 @@
 #!/bin/sh
 ### BEGIN INIT INFO
 # Provides:          mx-cpu-monitor-init
-# Required-Start:    $local_fs $syslog
-# Required-Stop:     
+# Required-Start:    $local_fs $remote_fs $syslog
+# Should-Start:      loadcpufreq cpufrequtils tlp
+# Required-Stop:     $local_fs
 # Default-Start:     2 3 4 5
 # Default-Stop:      0 1 6
-# Short-Description: MX CPU Monitor RAPL and governor permissions
-# Description:       Biztositja a CPU fogyasztasmero (RAPL) es a szabalyozo (governor) irasi/olvasasi jogat.
+# Short-Description: MX CPU Monitor RAPL, governor permissions and persistent boot governor
+# Description:       Biztositja a CPU fogyasztasmero (RAPL) es a szabalyozo (governor) irasi/olvasasi jogat,
+#                    valamint rendszerinditaskor automatikusan visszaallitja az elmentett CPU kormanyzo semat.
 ### END INIT INFO
+
+GOV_CONF="/usr/share/mx-cpu-monitor/governor.conf"
+
+apply_permissions() {
+    # RAPL fogyasztás olvasási jog (0444)
+    for f in /sys/class/powercap/intel-rapl/intel-rapl:*/energy_uj; do
+        if [ -f "$f" ]; then
+            chmod 0444 "$f" 2>/dev/null || true
+        fi
+    done
+    # CPU Kormányzó (governor) írási jog (0666)
+    for f in /sys/devices/system/cpu/cpu*/cpufreq/scaling_governor; do
+        if [ -f "$f" ]; then
+            chmod 0666 "$f" 2>/dev/null || true
+        fi
+    done
+    # Konfigurációs fájl írhatóság biztosítása
+    mkdir -p /usr/share/mx-cpu-monitor 2>/dev/null || true
+    if [ ! -f "$GOV_CONF" ]; then
+        if [ -f /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor ]; then
+            cat /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor > "$GOV_CONF" 2>/dev/null || true
+        fi
+    fi
+    chmod 0666 "$GOV_CONF" 2>/dev/null || true
+}
+
+get_saved_governor() {
+    SAVED=""
+    if [ -f "$GOV_CONF" ]; then
+        SAVED=$(head -n 1 "$GOV_CONF" 2>/dev/null | tr -d '[:space:]')
+    fi
+    if [ -z "$SAVED" ]; then
+        for uconf in /home/*/.config/mx-cpu-monitor/governor.conf; do
+            if [ -f "$uconf" ]; then
+                SAVED=$(head -n 1 "$uconf" 2>/dev/null | tr -d '[:space:]')
+                [ -n "$SAVED" ] && break
+            fi
+        done
+    fi
+    echo "$SAVED"
+}
+
+apply_governor() {
+    GOV="$1"
+    [ -z "$GOV" ] && return 0
+    AVAIL="/sys/devices/system/cpu/cpu0/cpufreq/scaling_available_governors"
+    if [ -f "$AVAIL" ] && ! grep -qw "$GOV" "$AVAIL" 2>/dev/null; then
+        return 0
+    fi
+    for f in /sys/devices/system/cpu/cpu*/cpufreq/scaling_governor; do
+        if [ -f "$f" ]; then
+            echo "$GOV" > "$f" 2>/dev/null || true
+        fi
+    done
+    if [ -w /etc/default ] || [ -w /etc/default/cpufrequtils ]; then
+        printf 'ENABLE="true"\nGOVERNOR="%s"\nMAX_SPEED="0"\nMIN_SPEED="0"\n' "$GOV" > /etc/default/cpufrequtils 2>/dev/null || true
+    fi
+}
 
 case "$1" in
     start|restart|force-reload)
-        # RAPL fogyasztás olvasási jog (0444)
-        for f in /sys/class/powercap/intel-rapl/intel-rapl:*/energy_uj; do
-            if [ -f "$f" ]; then
-                chmod 0444 "$f" 2>/dev/null || true
-            fi
-        done
-        # CPU Kormányzó (governor) írási jog (0666)
-        for f in /sys/devices/system/cpu/cpu*/cpufreq/scaling_governor; do
-            if [ -f "$f" ]; then
-                chmod 0666 "$f" 2>/dev/null || true
-            fi
-        done
+        apply_permissions
+        SAVED_GOV=$(get_saved_governor)
+        if [ -n "$SAVED_GOV" ]; then
+            apply_governor "$SAVED_GOV"
+            # Háttérben 3 mp múlva újra érvényesítjük, ha az S04cpufrequtils vagy tlp felülírná
+            (
+                sleep 3
+                apply_permissions
+                LATE_GOV=$(get_saved_governor)
+                [ -n "$LATE_GOV" ] && apply_governor "$LATE_GOV"
+            ) >/dev/null 2>&1 &
+        fi
         ;;
-    stop|status)
+    stop)
+        # Leállításkor / újraindításkor elmentjük az aktuálisan aktív kormányzót
+        if [ -f /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor ]; then
+            CURR_GOV=$(cat /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor 2>/dev/null | tr -d '[:space:]')
+            if [ -n "$CURR_GOV" ]; then
+                echo "$CURR_GOV" > "$GOV_CONF" 2>/dev/null || true
+                if [ -w /etc/default ] || [ -w /etc/default/cpufrequtils ]; then
+                    printf 'ENABLE="true"\nGOVERNOR="%s"\nMAX_SPEED="0"\nMIN_SPEED="0"\n' "$CURR_GOV" > /etc/default/cpufrequtils 2>/dev/null || true
+                fi
+            fi
+        fi
+        ;;
+    status)
+        SAVED_GOV=$(get_saved_governor)
+        CURR_GOV="ismeretlen"
+        if [ -f /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor ]; then
+            CURR_GOV=$(cat /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor 2>/dev/null | tr -d '[:space:]')
+        fi
+        echo "MX CPU Monitor SysVinit: Aktív kormányzó=${CURR_GOV} | Mentett (boot) kormányzó=${SAVED_GOV:-nincs}"
         ;;
     *)
-        echo "Hasznalat: $0 {start|stop|restart}" >&2
+        echo "Használat: $0 {start|stop|restart|force-reload|status}" >&2
         exit 3
         ;;
 esac

@@ -1,5 +1,5 @@
 Package: mx-cpu-monitor
-Version: 1.0.5-1
+Version: 1.0.6-1
 Section: utils
 Priority: optional
 Architecture: all
