@@ -88,9 +88,8 @@ def main():
         return
 
     for name, mnt, fstype in mounts:
-        print(f"${{voffset -6}}${{font Open Sans:bold:size=8}}Csatolt tár ({name})$font$alignr${{fs_used {mnt}}} / ${{fs_size {mnt}}} ({fstype})")
-        print(f"$alignr Használt: ${{fs_used_perc {mnt}}}%")
-        print(f"${{color2}}${{fs_bar 4 {mnt}}}${{color}}")
+        print(f"${{voffset -2}}${{font Open Sans:bold:size=8}}Csatolt tár ({name})$font$alignr${{fs_used {mnt}}} / ${{fs_size {mnt}}} (${{fs_used_perc {mnt}}}%)")
+        print(f"${{voffset -3}}${{color2}}${{fs_bar 4 {mnt}}}${{color}}")
 
 
 if __name__ == '__main__':
