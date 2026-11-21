@@ -163,6 +163,17 @@ A rendszer felkészítve teljes monitor-, billentyűzet- és egérmentes (headle
    - UFW tűzfal beállítva: a `192.168.1.0/24` alhálózat, az SSH (22) és a VNC (5900) engedélyezve.
    - Mindkét gép tálcáján fut a zöld állapotjelző ikon, és a vezérlés kétirányúan, teljes értékűen működik.
 
+### E) AMD Phenom II X4 945 és a Google Antigravity AVX Követelménye
+1. **A Fizikai és Hardveres Valóság:**
+   - A másik gép processzora egy **AMD Phenom(tm) II X4 945** (K10 architektúra, 2009).
+   - Támogatott utasításkészletek: `sse, sse2, sse3, sse4a, popcnt`.
+   - **Fizikailag hiányzó tranzisztorok és utasítások:** `avx, avx2, fma, bmi1, bmi2, sse4.1, sse4.2`.
+   - A Google Antigravity natív nyelvi és ügynök backendje (`agy`) a modern **x86-64-v3** mikroszintű architektúrát célozza (AVX vektorutasítások, pl. `vzeroupper`). Ha a Phenom II processzoron indítanánk el ezt a binárist, a CPU hardveres kivételt dob (`SIGILL - Illegal Instruction`).
+   - Ezért az Antigravity VS Code bővítmény ellenőrzi a `/proc/cpuinfo` zászlókat, és megtagadja a helyi bináris indítását AVX hiányában.
+2. **A Két Hivatalos és Működőképes Megoldás:**
+   - **1. Megoldás (Ajánlott - VNC Távvezérlés):** Az asztalon lévő `mx-vnc-connect` ikonnal a Phenom gép csatlakozik a 20-szálas Xeon E5-2640 v4 gazdagéphez. Az Antigravity teljes sebességgel, natív AVX2 gyorsítással fut a Xeonon, míg a Phenom gépen a megjelenítés 0-5% terhelést jelent.
+   - **2. Megoldás (VS Code Remote-SSH):** Az `mx` gép VS Code-jába feltelepítésre került az `ms-vscode-remote.remote-ssh` bővítmény, és bekonfigurálva a `~/.ssh/config` (`Host mx-1`). Amikor a helyi VS Code csatlakozik a gazdagéphez, a teljes Antigravity motor a Xeon processzoron fut, a Phenom gép csak a szerkesztőfelületet rendereli.
+
 ---
 
 ## 6. Fejlesztési és Karbantartási Protokoll
