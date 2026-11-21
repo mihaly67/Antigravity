@@ -1,0 +1,68 @@
+#! /bin/sh
+
+### BEGIN INIT INFO
+# Provides:          tailscaled
+# Required-Start:    $network $remote_fs $syslog
+# Required-Stop:     $network $remote_fs $syslog
+# Default-Start:     2 3 4 5
+# Default-Stop:      0 1 6
+# Short-Description: Tailscale node agent
+### END INIT INFO
+
+DAEMON=/usr/sbin/tailscaled
+PIDFILE=/var/run/tailscaled.pid
+DEFAULTS=/etc/default/tailscaled
+
+test -x $DAEMON || exit 0
+
+. /lib/lsb/init-functions
+
+PORT="41641"
+FLAGS=""
+[ -r "$DEFAULTS" ] && . "$DEFAULTS"
+
+start() {
+    log_daemon_msg "Starting Tailscale node agent" "tailscaled"
+    mkdir -p /var/lib/tailscale /run/tailscale
+    chmod 0755 /run/tailscale
+    chmod 0700 /var/lib/tailscale
+    start-stop-daemon --start --background --make-pidfile --pidfile $PIDFILE \
+        --exec $DAEMON -- --state=/var/lib/tailscale/tailscaled.state \
+        --socket=/run/tailscale/tailscaled.sock --port=${PORT} $FLAGS
+    log_end_msg $?
+}
+
+stop() {
+    log_daemon_msg "Stopping Tailscale node agent" "tailscaled"
+    start-stop-daemon --stop --quiet --oknodo --pidfile $PIDFILE --retry=TERM/5/KILL/5
+    $DAEMON --cleanup 2>/dev/null || true
+    rm -f $PIDFILE /run/tailscale/tailscaled.sock
+    log_end_msg $?
+}
+
+status() {
+    status_of_proc -p $PIDFILE $DAEMON tailscaled
+}
+
+case "$1" in
+    start)
+        start
+        ;;
+    stop)
+        stop
+        ;;
+    restart|force-reload)
+        stop
+        sleep 1
+        start
+        ;;
+    status)
+        status
+        ;;
+    *)
+        echo "Usage: /etc/init.d/tailscaled {start|stop|restart|force-reload|status}"
+        exit 1
+        ;;
+esac
+
+exit 0

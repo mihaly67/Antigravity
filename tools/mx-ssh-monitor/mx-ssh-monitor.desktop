@@ -1,0 +1,10 @@
+[Desktop Entry]
+Name=Jules SSH Monitor
+Comment=SSH és Tailscale Hálózat Monitor
+Exec=/usr/bin/mx-ssh-monitor
+Icon=network-wired
+Terminal=false
+Type=Application
+Categories=System;MX-Setup;Settings;HardwareSettings;
+Keywords=ssh;tailscale;network;monitor;jules;
+StartupNotify=true

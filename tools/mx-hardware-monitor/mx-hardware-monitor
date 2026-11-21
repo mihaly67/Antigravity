@@ -1,0 +1,2 @@
+#!/bin/bash
+python3 /usr/bin/hardware_monitor_v2.py "$@"

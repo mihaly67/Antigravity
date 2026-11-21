@@ -1,20 +1,53 @@
-# MX Linux CPU & System Monitor
+# Antigravity — MX Linux Rendszermonitor és Segédeszköz Csomag
 
-Könnyűsúlyú, alacsony erőforrás-igényű rendszermonitor és CPU governor vezérlő MX Linux (Debian 12 / SysVinit) rendszerekhez.
+Átfogó, hardverközeli rendszermonitorozó és felügyeleti eszközkészlet MX Linux (Debian 12 / SysVinit / X11) környezetre optimalizálva.
 
-## Főbb funkciók
-- **Valós idejű telemetria:** CPU terhelés, magonkénti órajelek, hőmérséklet és fogyasztás (Intel/AMD RAPL).
-- **Hardveres governor szabályozás:** Valós idejű CPU frekvencia- és teljesítményprofil váltás (performance, powersave, schedutil).
-- **Rendszerintegráció:** SysVinit démon és init script, udev szabályok (`99-mx-cpu-rapl.rules`), XDG autostart és asztali ikonok.
-- **Minimális lábnyom:** Nincs felesleges függőség vagy Electron overhead; Python és natív Linux `sysfs` interfész.
+## 🚀 Komponensek és Eszközök
 
-## Mappa felépítés
-- `main.py` - Felhasználói felület és tálca/ablak logika
-- `metrics.py` - CPU és hardveres mérési adatok kinyerése (`/sys/devices/system/cpu`, RAPL)
-- `pkg/` - Debian (.deb) csomagkészítéshez szükséges fájlok (DEBIAN control/postinst, `/etc/init.d`, `/usr/bin`, `/usr/share`)
+### 1. Conky Rendszermonitor (`conky/MX-KoO/`)
+- **Intel Xeon E5 v3/v4 & többmagos topológia támogatás:** Automatikus fizikai mag és logikai szál (HT/SMT) párosítás, tokozási és magonkénti hőmérséklet-kijelzés.
+- **Dinamikus meghajtó-kezelés (`get_disk_info.py`):** Automatikusan felismeri a csatlakoztatott külső USB lemezeket és másodlagos partíciókat a `/home` alatt, kiszűrve a duplikációkat és bind-mountokat.
+- **Kompakt kialakítás:** 900p / 1080p kijelzőkre optimalizált függőleges térközök, tiszta magyar felület.
 
-## Futtatás
+### 2. MX CPU Monitor (`main.py`, `metrics.py`, `pkg/`)
+- Valós idejű magonkénti órajel, feszültség, RAPL fogyasztásmérés.
+- Hardveres CPU governor vezérlő (powersave, performance, schedutil) és SysVinit újraindítás-biztos állapotmegőrzés.
+- Tálcán futás (`--minimized`, `--hidden`).
+
+### 3. MX Hardver Monitor (`tools/mx-hardware-monitor/`)
+- Teljes GPU telemetria: NVIDIA NVS 310 / Fermi és Nouveau meghajtó natív DRM sysfs integráció.
+- Valós idejű GPU terhelés, hőfok (~44°C), ventilátor-fordulatszám (~2150 RPM), VRAM használat és becsült fogyasztás.
+
+### 4. MX SSH & Tailscale Monitor (`tools/mx-ssh-monitor/`)
+- Valós idejű SSH kapcsolatok és Tailscale hálózati csomópont állapot követése.
+- Tálcán futó értesítések és gyors kapcsolódás.
+
+### 5. MX Biztonsági Irányítópult (`tools/mx-security-dashboard/`)
+- Nyitott portok, tűzfal (iptables/ufw), aktív hálózati szolgáltatások és bejelentkezési kísérletek vizsgálata.
+
+### 6. További Eszközök
+- **MX RAM Cleaner (`tools/mx-ram-cleaner/`):** Linux cache és memória kíméletes felszabadítása.
+- **MX CPU/GPU Stressz Teszt (`tools/mx-cpu-gpu-stress-test/`):** Hardveres terhelésteszt és stabilitás-ellenőrzés.
+
+---
+
+## 📦 Telepítőcsomagok (.deb)
+A legfrissebb előre fordított Debian csomagok a [`packages/`](file:///home/misi/Antigravity/packages) mappában találhatók:
+- `mx-cpu-monitor_1.0.6-1_all.deb`
+- `mx-hardware-monitor_1.0.8_all.deb`
+- `mx-ssh-monitor_1.1.3_all.deb`
+- `mx-security-dashboard_1.0.0_all.deb`
+- `mx-ram-cleaner_1.0.3_all.deb`
+- `mx-cpu-gpu-stress-test_1.1.8_all.deb`
+
+Telepítés:
 ```bash
-python3 main.py
+sudo dpkg -i packages/<csomagnév>.deb
 ```
 
+---
+
+## 🔄 Automatikus Szinkronizáció
+A rendszer automatikus szinkronizációját a [`scripts/git-autopush.sh`](file:///home/misi/Antigravity/scripts/git-autopush.sh) démon végzi.
+- Ciklikusan összegyűjti a módosított konfigurációkat és forrásokat.
+- Automatikus commitot és pusht hajt végre a `main` ágra: `https://github.com/mihaly67/Antigravity`.

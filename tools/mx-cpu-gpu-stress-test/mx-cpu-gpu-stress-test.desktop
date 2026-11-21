@@ -1,0 +1,10 @@
+[Desktop Entry]
+Name=Jules CPU & GPU Stressz Teszt
+Comment=Prime95 és Unigine Heaven Benchmark Wrapper
+Exec=/usr/bin/mx-cpu-gpu-stress-test
+Icon=/usr/share/icons/oxygen/base/128x128/apps/utilities-system-monitor.png
+Terminal=false
+Type=Application
+Categories=System;MX-Setup;Settings;HardwareSettings;
+Keywords=cpu;gpu;stress;test;jules;heaven;prime95;
+StartupNotify=true
