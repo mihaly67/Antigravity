@@ -151,65 +151,94 @@ class TurbostatWorker(QObject):
     data_ready = pyqtSignal(dict, dict, dict, str, str) # core_temps, cstates, phys_core_map, pkg_watt, pkg_temp
 
     def run(self):
+        import time, glob, os, re
+
+        last_rapl_energy = None
+        last_rapl_time = None
+        rapl_path = "/sys/class/powercap/intel-rapl/intel-rapl:0/energy_uj"
+        if os.path.exists(rapl_path):
+            try:
+                last_rapl_energy = int(open(rapl_path).read().strip())
+                last_rapl_time = time.time()
+                time.sleep(0.15)
+            except Exception:
+                pass
+
         while True:
             core_temps = {}
             cstates = {}
             phys_core_map = {}
             pkg_watt = "N/A"
             pkg_temp = "N/A"
+
+            # 1. CPU topológia: logikai szálak (0..N) összerendelése fizikai core_id azonosítókkal
             try:
-                # Turbostat can take a few seconds
-                import subprocess
-                out = subprocess.check_output("sudo -n /usr/sbin/turbostat -q --num_iterations 1 2>&1", shell=True, text=True, timeout=10)
-                lines = out.strip().split('\n')
-                headers = []
-                header_idx = -1
-                for i, line in enumerate(lines):
-                    if 'Core' in line and 'CPU' in line and 'Avg_MHz' in line:
-                        header_idx = i
-                        break
-
-                if header_idx != -1:
-                    header_line = lines[header_idx].split('] Jules jelszava: ')[-1]
-                    headers = header_line.split()
-                    for line in lines[header_idx+1:]:
-                        parts = line.split()
-                        if not parts: continue
-                        row = dict(zip(headers[:len(parts)], parts))
-
-                        if row.get('Core') == '-' and row.get('CPU') == '-':
-                            if 'PkgWatt' in row: pkg_watt = row['PkgWatt']
-                            if 'PkgTmp' in row: pkg_temp = f"{row['PkgTmp']}°C"
-                            continue
-
+                for p in sorted(glob.glob('/sys/devices/system/cpu/cpu[0-9]*/topology/core_id')):
+                    m = re.search(r'cpu(\d+)', p)
+                    if m:
+                        cpu_idx = int(m.group(1))
                         try:
-                            cpu_idx = int(row.get('CPU', -1))
-                            if cpu_idx >= 0:
-                                # Fizikai mag sorszám (Core oszlop)
-                                if 'Core' in row and row['Core'] != '-':
-                                    phys_core_map[cpu_idx] = int(row['Core'])
-
-                                if 'CoreTmp' in row and row['CoreTmp'] != '-':
-                                    core_temps[cpu_idx] = float(row['CoreTmp'])
-                                elif 'Core' in row and row['Core'] != '-':
-                                    phys_core = int(row['Core'])
-                                    if 'CoreTmp' in row:
-                                        core_temps[phys_core] = float(row['CoreTmp'])
-
-                                states = {}
-                                for st in ['Busy%', 'C1%', 'C1E%', 'C3%', 'C6%', 'POLL%']:
-                                    if st in row:
-                                        try: states[st.replace('%', '')] = float(row[st])
-                                        except: pass
-                                cstates[cpu_idx] = states
+                            cid = int(open(p).read().strip())
+                            phys_core_map[cpu_idx] = cid
                         except:
                             pass
             except Exception:
                 pass
 
+            # 2. Natív Linux sysfs coretemp olvasás (root/sudo nélkül, 0ms késleltetés)
+            raw_core_temps = {}
+            try:
+                for hwmon in glob.glob('/sys/class/hwmon/hwmon*'):
+                    name_file = os.path.join(hwmon, 'name')
+                    if os.path.exists(name_file) and open(name_file).read().strip() == 'coretemp':
+                        for lbl_file in glob.glob(os.path.join(hwmon, 'temp*_label')):
+                            try:
+                                lbl = open(lbl_file).read().strip()
+                                inp_file = lbl_file.replace('_label', '_input')
+                                if os.path.exists(inp_file):
+                                    t = float(open(inp_file).read().strip()) / 1000.0
+                                    if 'Package' in lbl:
+                                        pkg_temp = f"{int(round(t))}°C"
+                                    elif 'Core' in lbl:
+                                        core_num = int(lbl.split()[1])
+                                        raw_core_temps[core_num] = t
+                            except:
+                                pass
+            except Exception:
+                pass
+
+            # Logikai szálakhoz társítjuk a fizikai magok hőmérsékletét
+            for cpu_idx, cid in phys_core_map.items():
+                if cid in raw_core_temps:
+                    core_temps[cpu_idx] = raw_core_temps[cid]
+            for cid, t in raw_core_temps.items():
+                if cid not in core_temps:
+                    core_temps[cid] = t
+
+            if pkg_temp == "N/A" and raw_core_temps:
+                pkg_temp = f"{int(round(max(raw_core_temps.values())))}°C"
+
+            # 3. CPU RAPL pillanatnyi fogyasztás mérés (Watt)
+            try:
+                if os.path.exists(rapl_path):
+                    cur_energy = int(open(rapl_path).read().strip())
+                    cur_time = time.time()
+                    if last_rapl_energy is not None and last_rapl_time is not None:
+                        dt = cur_time - last_rapl_time
+                        if dt > 0.1:
+                            d_energy = cur_energy - last_rapl_energy
+                            if d_energy < 0:
+                                d_energy += (1 << 32)
+                            watt = (d_energy / dt) / 1000000.0
+                            if 0.0 < watt < 500.0:
+                                pkg_watt = f"{watt:.1f}"
+                    last_rapl_energy = cur_energy
+                    last_rapl_time = cur_time
+            except Exception:
+                pass
+
             self.data_ready.emit(core_temps, cstates, phys_core_map, pkg_watt, pkg_temp)
-            import time
-            time.sleep(2.0) # Csak hőmérséklet/watt/C-state lassabb frissítése (frekvencia már a /sys-ból jön)
+            time.sleep(1.0)
 
 class HardwareMonitor(QMainWindow):
     def __init__(self):
