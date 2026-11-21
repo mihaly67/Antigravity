@@ -142,6 +142,22 @@ A rendszer felkészítve teljes monitor-, billentyűzet- és egérmentes (headle
   - Csatlakozási adatok ablak jelszó-kijelzéssel és útmutatóval.
   - Automatikus indítás beállítva a rendszerindítással (`~/.config/autostart/mx-vnc-server.desktop`).
 
+### D) Kétgépes Hálózati Topológia és Távoli Vezérlés
+1. **Érintett Gépek:**
+   - **Gazdagép (Xeon E5-2640 v4):** LAN `192.168.1.105`, Tailscale `100.118.197.74`, felhasználó `misi`.
+   - **Másik Gép (`mx`):** LAN `192.168.1.106`, Tailscale `100.95.215.75`, felhasználó `Misi` (jelszó: `1104`).
+2. **Dolphin Fájlkezelő Integráció:**
+   - A gazdagép Dolphin felületén a bal oldali Helyek (Places) panelen és a Hálózat (`remote:/`) alatt közvetlen könyvjelző készült: `MX Másik Gép (Misi)` -> `sftp://Misi@192.168.1.106/home/Misi`.
+   - ED25519 SSH kulcspár szinkronizálva (`ssh-copy-id`), így a Dolphin jelszókérés nélkül, azonnal nyitja a távoli fájlrendszert gigabites sebességgel.
+3. **Távoli Vezérlés a Másik Gépről:**
+   - A másik gép asztalán közvetlen indítóikon készült: `/home/Misi/Asztal/Vezerles_Xeon_Host.desktop`.
+   - Egyetlen kattintással elindítja a TigerVNC-t a gazdagéphez (`192.168.1.105:5900`), az előre beállított `1104` jelszóval.
+   - Remmina profil mentve: `/home/Misi/.local/share/remmina/xeon_host.remmina`.
+4. **VNC Kiszolgáló a Másik Gépen is:**
+   - Az `mx-vnc-server` csomag és az `x11vnc` telepítve a másik gépre is.
+   - UFW tűzfal beállítva: a `192.168.1.0/24` alhálózat, az SSH (22) és a VNC (5900) engedélyezve.
+   - Mindkét gép tálcáján fut a zöld állapotjelző ikon, és a vezérlés kétirányúan, teljes értékűen működik.
+
 ---
 
 ## 6. Fejlesztési és Karbantartási Protokoll
