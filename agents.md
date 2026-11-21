@@ -66,6 +66,8 @@ Minden segédprogram automatikusan indul, és a tálcán fut rejtve vagy minimal
 * **Indítás:** `/usr/bin/mx-security-dashboard --hidden`
 
 ### 6. Egyéb Segédeszközök
+* **x11vnc Szerver:** A valós `:0` X11 kijelző (KDE, Conky, tálcamonitorok) távoli elérése port 5900-on jelszóval (`1104`). Automatikus indítás `/etc/xdg/autostart/x11vnc.desktop` és `~/.config/autostart/x11vnc.desktop`.
+* **Headless Display mód:** GRUB `video=DP-1:1920x1080@60e` kényszerítéssel fizikai monitor nélkül is 1920x1080-on indul el a grafikus felület.
 * **MX RAM Cleaner (`mx-ram-cleaner`, v1.0.3):** Memória és gyorsítótár kíméletes kiürítése.
 * **MX CPU/GPU Stressz Teszt (`mx-cpu-gpu-stress-test`, v1.1.8):** Rendszerstabilitási terhelőteszt.
 * **Tailscale Démon:** `/etc/init.d/tailscaled` SysVinit init script.
