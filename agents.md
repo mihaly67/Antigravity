@@ -122,10 +122,15 @@ A rendszer felkészítve teljes monitor-, billentyűzet- és egérmentes (headle
    - A Linux evdev és az X11 XTEST alrendszere párhuzamosan kezeli a virtuális (VNC) és a fizikai beviteli eszközöket.
    - Ha fizikai billentyűzetet vagy egeret csatlakoztatunk, azok azonnal működnek a távoli VNC munkamenet megszakítása vagy újraindítása nélkül.
 
-### B) VNC Gazda Kiszolgáló (`x11vnc`)
+### B) VNC Gazda Kiszolgáló és SysVinit Rendszerindítás (`x11vnc`)
 - **Protokoll & Kiszolgáló:** `x11vnc` 0.9.16 (Port: `5900`).
-- **Valódi asztali munkamenet megosztása:** Az aktív `:0` KDE Plasma asztalt osztja meg (`-auth /home/misi/.Xauthority`, `-rfbauth /home/misi/.vnc/passwd`).
-- **Jelszó:** `1104` (mentve: `/home/misi/.vnc/passwd`).
+- **Valódi asztali munkamenet megosztása:** Az aktív `:0` KDE Plasma asztalt osztja meg (`-auth /home/<user>/.Xauthority`, `-rfbauth /home/<user>/.vnc/passwd`).
+- **Jelszó:** `1104` (mentve: `~/.vnc/passwd`).
+- **SysVinit Rendszerszolgáltatás:**
+  - Szolgáltatás szkript: `/etc/init.d/x11vnc`
+  - Felügyeleti démon: `/usr/local/bin/x11vnc-service.sh`
+  - Automatikus futási szintek: `update-rc.d x11vnc defaults 95 05` (futási szintek: 2, 3, 4, 5).
+  - Folyamatos felügyelet: az X11 `:0` képernyő és a hitelesítés indulásakor azonnal elindítja az `x11vnc`-t, munkamenet újraindulásakor pedig automatikusan újraépíti a kapcsolatot.
 - **Elérési útvonalak:**
   - Helyi LAN hálózat: `192.168.1.105:5900`
   - Biztonságos Tailscale VPN mesh: `100.118.197.74:5900`
