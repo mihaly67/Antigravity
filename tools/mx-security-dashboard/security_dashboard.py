@@ -251,8 +251,8 @@ class Dashboard(QMainWindow):
         self.wd_page, self.wd_status = self.create_page(
             "Merkava Cryptominer Watchdog", 
             "Continuously scans process list and kills known crypto miners.",
-            lambda: self.execute_sudo_cmd(self.wd_start_proc, ["bash", "-c", "echo '* * * * * root /usr/local/bin/miner_watchdog.sh' > /etc/cron.d/miner_watchdog && chmod 644 /etc/cron.d/miner_watchdog"]),
-            lambda: self.execute_sudo_cmd(self.wd_stop_proc, ["bash", "-c", "rm -f /etc/cron.d/miner_watchdog && pkill -9 -f miner_watchdog.sh || true"])
+            lambda: self.execute_sudo_cmd(self.wd_start_proc, ["/usr/local/bin/miner_watchdog_enable.sh"]),
+            lambda: self.execute_sudo_cmd(self.wd_stop_proc, ["/usr/local/bin/miner_watchdog_disable.sh"])
         )
 
         self.stack.addWidget(self.clam_page)
@@ -412,9 +412,7 @@ class Dashboard(QMainWindow):
             
         self.clam_log.clear()
         self.clam_log.append("[*] Starting ClamAV Engine Upgrade via APT...")
-        # Force apt-get to upgrade clamav packages non-interactively
-        cmd = "apt-get update && apt-get install --only-upgrade -y clamav clamav-daemon clamav-freshclam"
-        self.execute_sudo_cmd(self.clam_update_proc, ["bash", "-c", cmd])
+        self.execute_sudo_cmd(self.clam_update_proc, ["/usr/local/bin/clamav_upgrade_engine.sh"])
 
     def clam_update_output(self):
         text = self.clam_update_proc.readAllStandardOutput().data().decode(errors='ignore')
@@ -425,18 +423,15 @@ class Dashboard(QMainWindow):
         self.clam_log.append(f"[-] Update finished with exit code {exitCode}.")
 
     def toggle_auto_update(self):
-        # We use standard bash pipe for crontab via sudo since it's NOPASSWD
         if "ON" in self.btn_update_auto.text():
-            cmd = "sudo crontab -l 2>/dev/null | grep -v update_clamav.sh | sudo crontab -"
             self.clam_log.append("[*] Disabling automatic updates...")
+            self.execute_sudo_cmd(self.clam_cron_proc, ["/usr/local/bin/clamav_cron_disable.sh"])
             self.btn_update_auto.setText("Auto Update (Cron): OFF")
         else:
-            cmd = "(sudo crontab -l 2>/dev/null | grep -v update_clamav.sh; echo '0 */4 * * * /usr/local/bin/update_clamav.sh') | sudo crontab -"
             self.clam_log.append("[*] Enabling automatic updates (every 4 hours)...")
+            self.execute_sudo_cmd(self.clam_cron_proc, ["/usr/local/bin/clamav_cron_enable.sh"])
             self.btn_update_auto.setText("Auto Update (Cron): ON")
             
-        self.clam_cron_proc.start("bash", ["-c", cmd])
-        # Force a status update check slightly after
         QTimer.singleShot(1500, self.update_statuses)
 
     # --- End ClamAV Logic ---
@@ -457,7 +452,13 @@ class Dashboard(QMainWindow):
 
         # Watchdog
         if self.wd_status_proc.state() == QProcess.NotRunning:
-            self.wd_status_proc.start("bash", ["-c", "test -f /etc/cron.d/miner_watchdog || pgrep -f miner_watchdog.sh || crontab -l 2>/dev/null | grep -q miner_watchdog"])
+            self.wd_status_proc.start("bash", ["-c", "test -f /etc/cron.d/miner_watchdog || pgrep -f miner_watchdog.sh"])
+
+        # ClamAV Auto Update Cron status
+        if os.path.exists("/etc/cron.d/update_clamav"):
+            self.btn_update_auto.setText("Auto Update (Cron): ON")
+        else:
+            self.btn_update_auto.setText("Auto Update (Cron): OFF")
 
     # --- Slot callbacks for when status processes finish ---
 

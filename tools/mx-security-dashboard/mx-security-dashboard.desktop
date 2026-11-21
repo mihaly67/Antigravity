@@ -1,6 +1,6 @@
 [Desktop Entry]
-Name=Jules CyberSec Dashboard (Tálca)
-Comment=Biztonsági Központ és Tűzfal Kezelő indítása a tálcán
+Name=CyberSec Dashboard (Tálca)
+Comment=Biztonsági Központ és Vírusvédelem indítása a tálcán
 Exec=/usr/bin/mx-security-dashboard --hidden
 Icon=/usr/share/icons/oxygen/base/128x128/status/security-high.png
 Terminal=false
