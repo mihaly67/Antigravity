@@ -102,6 +102,12 @@ for u_home in /home/*; do
         user_name=$(basename "$u_home")
         chown "$user_name:$user_name" "$u_home/Desktop/mx-vnc-connect.desktop" 2>/dev/null || true
     fi
+    if [ -d "$u_home/.config" ]; then
+        mkdir -p "$u_home/.config/autostart"
+        cp -f /usr/share/applications/mx-vnc-server.desktop "$u_home/.config/autostart/mx-vnc-server.desktop"
+        user_name=$(basename "$u_home")
+        chown -R "$user_name:$user_name" "$u_home/.config/autostart" 2>/dev/null || true
+    fi
 done
 
 # Alapértelmezett VNC jelszó (1104) biztosítása
