@@ -250,8 +250,8 @@ class Dashboard(QMainWindow):
         self.wd_page, self.wd_status = self.create_page(
             "Merkava Cryptominer Watchdog", 
             "Continuously scans process list and kills known crypto miners.",
-            lambda: self.execute_sudo_cmd(self.wd_start_proc, ["bash", "-c", "(sudo crontab -l 2>/dev/null | grep -v miner_watchdog; echo '* * * * * /usr/local/bin/miner_watchdog.sh') | sudo crontab -"]),
-            lambda: self.execute_sudo_cmd(self.wd_stop_proc, ["bash", "-c", "sudo crontab -l 2>/dev/null | grep -v miner_watchdog | sudo crontab -"])
+            lambda: self.execute_sudo_cmd(self.wd_start_proc, ["bash", "-c", "echo '* * * * * root /usr/local/bin/miner_watchdog.sh' > /etc/cron.d/miner_watchdog && chmod 644 /etc/cron.d/miner_watchdog"]),
+            lambda: self.execute_sudo_cmd(self.wd_stop_proc, ["bash", "-c", "rm -f /etc/cron.d/miner_watchdog && pkill -9 -f miner_watchdog.sh || true"])
         )
 
         self.stack.addWidget(self.clam_page)
@@ -460,7 +460,7 @@ class Dashboard(QMainWindow):
 
         # Watchdog
         if self.wd_status_proc.state() == QProcess.NotRunning:
-            self.wd_status_proc.start("bash", ["-c", "sudo crontab -l 2>/dev/null | grep miner_watchdog.sh"])
+            self.wd_status_proc.start("bash", ["-c", "test -f /etc/cron.d/miner_watchdog || pgrep -f miner_watchdog.sh || crontab -l 2>/dev/null | grep -q miner_watchdog"])
 
     # --- Slot callbacks for when status processes finish ---
 
