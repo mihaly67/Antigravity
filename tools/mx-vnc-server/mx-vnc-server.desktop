@@ -1,0 +1,12 @@
+[Desktop Entry]
+Name=MX VNC Központ (Tálca)
+GenericName=VNC Server & Client Tray Controller
+Comment=VNC kiszolgáló felügyelet, állapotjelző és kliens indító a tálcán
+Exec=/usr/bin/mx-vnc-server
+Icon=preferences-desktop-remote-desktop
+Terminal=false
+Type=Application
+Categories=Network;RemoteAccess;System;
+X-GNOME-Autostart-enabled=true
+X-KDE-autostart-after=panel
+StartupNotify=false

@@ -108,7 +108,43 @@ A válasz a fizikai és architekturális tényekben rejlik:
 
 ---
 
-## 5. Fejlesztési és Karbantartási Protokoll
+## 5. Távoli Elérés, Headless Működés és VNC Rendszerarchitektúra
+
+A rendszer felkészítve teljes monitor-, billentyűzet- és egérmentes (headless) működésre, miközben fizikai perifériák csatlakoztatása esetén azonnal rendelkezésre áll.
+
+### A) Headless (Monitor nélküli) Rendszerindítás
+1. **KMS Virtuális Keretpuffer (Framebuffer):**
+   - A GRUB konfigurációban (`/etc/default/grub`) a `GRUB_CMDLINE_LINUX_DEFAULT` kiegészítve a következő paraméterrel:
+     `video=DP-1:1920x1080@60e`
+   - Ez biztosítja, hogy a Nouveau kernelmodul fizikai kijelző hiányában is felépít egy szabványos 1920x1080 @ 60Hz virtuális framepuffert a `DP-1` kimeneten.
+   - Ennek köszönhetően az SDDM kijelzőkezelő, a KDE Plasma és a KWin kompozitor hibátlanul elindul képernyő hiányában is (nincs szükség dummy HDMI/DP hardveres dugóra).
+2. **Párhuzamos Periféria Kezelés:**
+   - A Linux evdev és az X11 XTEST alrendszere párhuzamosan kezeli a virtuális (VNC) és a fizikai beviteli eszközöket.
+   - Ha fizikai billentyűzetet vagy egeret csatlakoztatunk, azok azonnal működnek a távoli VNC munkamenet megszakítása vagy újraindítása nélkül.
+
+### B) VNC Gazda Kiszolgáló (`x11vnc`)
+- **Protokoll & Kiszolgáló:** `x11vnc` 0.9.16 (Port: `5900`).
+- **Valódi asztali munkamenet megosztása:** Az aktív `:0` KDE Plasma asztalt osztja meg (`-auth /home/misi/.Xauthority`, `-rfbauth /home/misi/.vnc/passwd`).
+- **Jelszó:** `1104` (mentve: `/home/misi/.vnc/passwd`).
+- **Elérési útvonalak:**
+  - Helyi LAN hálózat: `192.168.1.105:5900`
+  - Biztonságos Tailscale VPN mesh: `100.118.197.74:5900`
+
+### C) Tálca Indikátor & Vezérlő Központ (`mx-vnc-server`)
+- **Alkalmazás:** `/usr/bin/mx-vnc-server` (`/usr/bin/mx_vnc_tray.py`).
+- **Tálca ikon:** Dinamikusan generált antialiased monitor ikon állapotjelző LED-del a KDE tálcán:
+  - 🟢 **Zöld (Figyel):** A VNC kiszolgáló aktív a `:5900` porton, várja a kapcsolatokat.
+  - 🔵 **Kék (Csatlakozva):** Távoli kliens aktívan csatlakozva (buborékértesítés jelenik meg a csatlakozott IP-vel).
+  - 🔴 **Piros (Leállítva):** A kiszolgáló inaktív.
+- **Kliens Végpont & Gyorselérés:**
+  - Beépített menüből egy kattintással indítható a **Remmina** (teljes értékű RDP/VNC kapcsolatkezelő) vagy a **TigerVNC Viewer**, ha innen szeretnénk elérni egy másik gépet.
+  - Helyi és Tailscale IP:Port egykattintásos vágólapra másolása.
+  - Csatlakozási adatok ablak jelszó-kijelzéssel és útmutatóval.
+  - Automatikus indítás beállítva a rendszerindítással (`~/.config/autostart/mx-vnc-server.desktop`).
+
+---
+
+## 6. Fejlesztési és Karbantartási Protokoll
 
 1. **Automatikus GitHub szinkronizáció:**
    - A repó a `/home/misi/Antigravity` mappában él, `origin/main` ágra kapcsolódva.

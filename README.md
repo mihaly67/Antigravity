@@ -25,7 +25,14 @@
 ### 5. MX Biztonsági Irányítópult (`tools/mx-security-dashboard/`)
 - Nyitott portok, tűzfal (iptables/ufw), aktív hálózati szolgáltatások és bejelentkezési kísérletek vizsgálata.
 
-### 6. További Eszközök
+### 6. MX VNC Központ & Tálca Indikátor (`tools/mx-vnc-server/`)
+- Valós idejű VNC szerver felügyelet a KDE tálcán (`🟢 Figyel :5900`, `🔵 Csatlakozva`, `🔴 Leállítva`).
+- Helyi LAN (`192.168.1.105:5900`) és Tailscale VPN (`100.118.197.74:5900`) címek egykattintásos vágólapra másolása.
+- Kliens és gazda végpont: egykattintásos Remmina VNC/RDP kapcsolatkezelő és TigerVNC gyors-kliens indítás.
+- Headless működés támogatása: monitor, billentyűzet és egér nélküli rendszerindítás virtuális 1080p DP-1 kerettel.
+- Párhuzamos bemenetkezelés: a távoli vezérlés és a helyi fizikai perifériák egyidejűleg használhatók.
+
+### 7. További Eszközök
 - **MX RAM Cleaner (`tools/mx-ram-cleaner/`):** Linux cache és memória kíméletes felszabadítása.
 - **MX CPU/GPU Stressz Teszt (`tools/mx-cpu-gpu-stress-test/`):** Hardveres terhelésteszt és stabilitás-ellenőrzés.
 
@@ -37,6 +44,7 @@ A legfrissebb előre fordított Debian csomagok a [`packages/`](file:///home/mis
 - `mx-hardware-monitor_1.0.8_all.deb`
 - `mx-ssh-monitor_1.1.3_all.deb`
 - `mx-security-dashboard_1.0.0_all.deb`
+- `mx-vnc-server_1.0.0_all.deb`
 - `mx-ram-cleaner_1.0.3_all.deb`
 - `mx-cpu-gpu-stress-test_1.1.8_all.deb`
 
