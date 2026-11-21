@@ -37,6 +37,7 @@ class Dashboard(QMainWindow):
         self.clam_scan_proc.finished.connect(self.clam_scan_finished)
         
         self.clam_update_proc.readyReadStandardOutput.connect(self.clam_update_output)
+        self.clam_update_proc.readyReadStandardError.connect(self.clam_update_output)
         self.clam_update_proc.finished.connect(self.clam_update_finished)
 
 
@@ -269,18 +270,14 @@ class Dashboard(QMainWindow):
 
 
     def execute_sudo_cmd(self, proc_obj, args_list):
-        if not self.sudo_password:
-            pwd, ok = QInputDialog.getText(self, "Sudo Authentication", "Enter your password for root privileges:", QLineEdit.Password)
-            if ok and pwd:
-                self.sudo_password = pwd
-                self.statusBar().showMessage('Password saved in memory.', 5000)
-            else:
-                return
-        
-        # Start sudo with -S to read from stdin
-        proc_obj.start("sudo", ["-S"] + args_list)
-        # Write the password to the process's stdin
-        proc_obj.write((self.sudo_password + "\n").encode())
+        # Ha a jelszó el van mentve a memóriában, azzal indítjuk
+        if self.sudo_password:
+            proc_obj.start("sudo", ["-S"] + args_list)
+            proc_obj.write((self.sudo_password + "\n").encode())
+            return
+
+        # Közvetlen futtatás sudo -n-nel (a NOPASSWD szabályoknak köszönhetően azonnal, jelszó nélkül fut)
+        proc_obj.start("sudo", ["-n"] + args_list)
 
     def create_page(self, title_text, desc_text, start_cb, stop_cb):
         page = QFrame()
