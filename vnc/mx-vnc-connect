@@ -1,0 +1,95 @@
+#!/usr/bin/env bash
+# MX VNC Smart Connector - Auto LAN / Tailscale Failover
+# Kölcsönös háromgépes távvezérlés: mx, mx-1, jules
+# Kompatibilis: Debian 12 / MX Linux 23 / SysVinit / X11
+
+MY_LAN=$(ip route get 1.1.1.1 2>/dev/null | awk '{print $7; exit}')
+MY_TS=$(tailscale ip -4 2>/dev/null)
+
+# Célpont meghatározása: ha van paraméter, azt használjuk, különben automatikus felderítés
+if [ -n "$1" ]; then
+    case "$1" in
+        mx|106|phenom)
+            PEER_NAME="MX Másik Gép (192.168.1.106)"
+            PEER_LAN="192.168.1.106"
+            PEER_TS="100.95.215.75"
+            ;;
+        mx1|mx-1|105|xeon)
+            PEER_NAME="MX-1 Xeon Gazdagép (192.168.1.105)"
+            PEER_LAN="192.168.1.105"
+            PEER_TS="100.118.197.74"
+            ;;
+        jules)
+            PEER_NAME="Jules Devbox (100.77.191.66)"
+            PEER_LAN=""
+            PEER_TS="100.77.191.66"
+            ;;
+        *)
+            PEER_NAME="$1"
+            PEER_LAN="$1"
+            PEER_TS=""
+            ;;
+    esac
+else
+    # Automatikus peer kiválasztás a helyi IP alapján:
+    if [ "$MY_LAN" = "192.168.1.105" ] || [ "$MY_TS" = "100.118.197.74" ]; then
+        # mx-1 gépen vagyunk -> a cél az mx
+        PEER_NAME="MX Másik Gép (192.168.1.106)"
+        PEER_LAN="192.168.1.106"
+        PEER_TS="100.95.215.75"
+    elif [ "$MY_LAN" = "192.168.1.106" ] || [ "$MY_TS" = "100.95.215.75" ]; then
+        # mx gépen vagyunk -> a cél az mx-1
+        PEER_NAME="MX-1 Xeon Gazdagép (192.168.1.105)"
+        PEER_LAN="192.168.1.105"
+        PEER_TS="100.118.197.74"
+    else
+        # jules vagy külső gépen vagyunk -> alapértelmezett a Xeon gazdagép
+        PEER_NAME="MX-1 Xeon Gazdagép (100.118.197.74)"
+        PEER_LAN="192.168.1.105"
+        PEER_TS="100.118.197.74"
+    fi
+fi
+
+# Elérési útvonal kiválasztása (LAN prioritás, Tailscale tartalék)
+if [ -n "$PEER_LAN" ] && nc -zv -w 1 "$PEER_LAN" 5900 >/dev/null 2>&1; then
+    TARGET="$PEER_LAN:5900"
+    CONN_TYPE="Helyi LAN (Gigabit)"
+elif [ -n "$PEER_TS" ] && nc -zv -w 1 "$PEER_TS" 5900 >/dev/null 2>&1; then
+    TARGET="$PEER_TS:5900"
+    CONN_TYPE="Biztonságos Tailscale VPN"
+else
+    if [ -n "$PEER_LAN" ]; then
+        TARGET="$PEER_LAN:5900"
+        CONN_TYPE="Helyi LAN (Közvetlen)"
+    else
+        TARGET="$PEER_TS:5900"
+        CONN_TYPE="Tailscale VPN"
+    fi
+fi
+
+# Jelszófájl megkeresése vagy létrehozása (alapértelmezett: 1104)
+PW_FILE="$HOME/.vnc/passwd_xeon"
+if [ ! -f "$PW_FILE" ]; then
+    PW_FILE="$HOME/.vnc/passwd"
+fi
+
+if [ ! -f "$PW_FILE" ]; then
+    mkdir -p "$HOME/.vnc"
+    if which x11vnc >/dev/null 2>&1; then
+        x11vnc -storepasswd "1104" "$HOME/.vnc/passwd" >/dev/null 2>&1 || true
+        PW_FILE="$HOME/.vnc/passwd"
+        chmod 600 "$PW_FILE" 2>/dev/null || true
+    fi
+fi
+
+# Értesítés küldése
+if which notify-send >/dev/null 2>&1; then
+    notify-send -i preferences-desktop-remote-desktop "VNC Távoli Asztal Kapcsolódás" "$PEER_NAME\nKapcsolat: $CONN_TYPE ($TARGET)" -t 3500 2>/dev/null || true
+fi
+
+# TigerVNC megjelenítő indítása
+if [ -f "$PW_FILE" ]; then
+    exec /usr/bin/vncviewer -RemoteResize=0 -passwd "$PW_FILE" "$TARGET"
+else
+    exec /usr/bin/vncviewer -RemoteResize=0 "$TARGET"
+fi

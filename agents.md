@@ -147,21 +147,20 @@ A rendszer felkészítve teljes monitor-, billentyűzet- és egérmentes (headle
   - Csatlakozási adatok ablak jelszó-kijelzéssel és útmutatóval.
   - Automatikus indítás beállítva a rendszerindítással (`~/.config/autostart/mx-vnc-server.desktop`).
 
-### D) Kétgépes Hálózati Topológia és Távoli Vezérlés
-1. **Érintett Gépek:**
-   - **Gazdagép (Xeon E5-2640 v4):** LAN `192.168.1.105`, Tailscale `100.118.197.74`, felhasználó `misi`.
-   - **Másik Gép (`mx`):** LAN `192.168.1.106`, Tailscale `100.95.215.75`, felhasználó `Misi` (jelszó: `1104`).
-2. **Dolphin Fájlkezelő Integráció:**
-   - A gazdagép Dolphin felületén a bal oldali Helyek (Places) panelen és a Hálózat (`remote:/`) alatt közvetlen könyvjelző készült: `MX Másik Gép (Misi)` -> `sftp://Misi@192.168.1.106/home/Misi`.
-   - ED25519 SSH kulcspár szinkronizálva (`ssh-copy-id`), így a Dolphin jelszókérés nélkül, azonnal nyitja a távoli fájlrendszert gigabites sebességgel.
-3. **Távoli Vezérlés a Másik Gépről:**
-   - A másik gép asztalán közvetlen indítóikon készült: `/home/Misi/Asztal/Vezerles_Xeon_Host.desktop`.
-   - Egyetlen kattintással elindítja a TigerVNC-t a gazdagéphez (`192.168.1.105:5900`), az előre beállított `1104` jelszóval.
-   - Remmina profil mentve: `/home/Misi/.local/share/remmina/xeon_host.remmina`.
-4. **VNC Kiszolgáló a Másik Gépen is:**
-   - Az `mx-vnc-server` csomag és az `x11vnc` telepítve a másik gépre is.
-   - UFW tűzfal beállítva: a `192.168.1.0/24` alhálózat, az SSH (22) és a VNC (5900) engedélyezve.
-   - Mindkét gép tálcáján fut a zöld állapotjelző ikon, és a vezérlés kétirányúan, teljes értékűen működik.
+### D) Háromgépes Kölcsönös VNC Rendszerarchitektúra (`vnc/`)
+1. **Érintett Csomópontok:**
+   - **Gazdagép (`mx-1`):** Intel Xeon E5-2640 v4 (20 szál), LAN `192.168.1.105`, Tailscale `100.118.197.74`, felhasználó `misi`.
+   - **Másik Gép (`mx`):** AMD Phenom II X4 945 (4 mag), LAN `192.168.1.106`, Tailscale `100.95.215.75`, felhasználó `Misi` (jelszó: `1104`).
+   - **Fejlesztői Csomópont (`jules`):** Tailscale `100.77.191.66`.
+2. **Kölcsönös és Kétirányú Működés:**
+   - A forráskódok a [`vnc/`](vnc/) gyökérkönyvtárba lettek szervezve, saját rendszerleírással ([`vnc/README.md`](vnc/README.md)).
+   - Az intelligens kliens ([`mx-vnc-connect`](file:///home/misi/Antigravity/vnc/mx-vnc-connect)) automatikusan felméri a helyi gép IP címét, és felismeri a célgépet. Támogatja az `mx`, `mx1` és `jules` paramétereket.
+   - Automatikus failover: elsődlegesen a gigabites helyi LAN-on (`192.168.1.x:5900`) próbál csatlakozni (1 ms alatti késleltetés), ha a port nem válaszol, automatikusan és észrevétlenül átvált a Tailscale titkosított WireGuard VPN-re (`100.x.x.x:5900`).
+3. **SysVinit Háttérszolgáltatás és Tálca Indikátor:**
+   - Mindkét fizikai gépen SysVinit démon fut (`/etc/init.d/x11vnc` és `/usr/local/bin/x11vnc-service.sh`), mely kijelzőzárolás, kijelentkezés vagy X11 újraindulás után is automatikusan életben tartja a portot (5900).
+   - A KDE tálcán futó állapotjelző (`mx_vnc_tray.py`) valós időben mutatja az állapotot (🟢 Figyel, 🔵 Csatlakozva, 🔴 Leállítva), a tálcamenüből pedig egyetlen kattintással másolhatók a címek és indítható a csatlakozás a kívánt partnergéphez (`mx`, `mx-1`, `jules`).
+4. **Dolphin Fájlkezelő Integráció:**
+   - Kétoldali jelszómentes ED25519 kulcscsere után mindkét gép Dolphin fájlkezelőjének Helyek paneljén közvetlen SFTP könyvjelző él gigabites sebességgel.
 
 ### E) AMD Phenom II X4 945 és a Google Antigravity AVX Követelménye
 1. **A Fizikai és Hardveres Valóság:**

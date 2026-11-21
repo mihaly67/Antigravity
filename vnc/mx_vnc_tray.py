@@ -372,13 +372,29 @@ class VncTrayApp:
 
         self.menu.addSeparator()
 
-        # Kliens opciók
-        self.act_connect_peer = QAction("🚀 Csatlakozás a másik géphez (Auto LAN / VPN)", self.menu)
+        # Kliens opciók - Kölcsönös távvezérlés (mx, mx-1, jules)
+        self.conn_menu = self.menu.addMenu("🚀 Csatlakozás másik géphez...")
+        
+        act_conn_auto = QAction("⚡ Automatikus partner (LAN / Tailscale)", self.conn_menu)
         font_conn = QFont()
         font_conn.setBold(True)
-        self.act_connect_peer.setFont(font_conn)
-        self.act_connect_peer.triggered.connect(self.launch_peer_connect)
-        self.menu.addAction(self.act_connect_peer)
+        act_conn_auto.setFont(font_conn)
+        act_conn_auto.triggered.connect(lambda: self.launch_peer_connect())
+        self.conn_menu.addAction(act_conn_auto)
+
+        self.conn_menu.addSeparator()
+
+        act_conn_mx = QAction("🖥️ MX Másik Gép (192.168.1.106 / 100.95.215.75)", self.conn_menu)
+        act_conn_mx.triggered.connect(lambda: self.launch_peer_connect("mx"))
+        self.conn_menu.addAction(act_conn_mx)
+
+        act_conn_mx1 = QAction("🚀 MX-1 Xeon Gazdagép (192.168.1.105 / 100.118.197.74)", self.conn_menu)
+        act_conn_mx1.triggered.connect(lambda: self.launch_peer_connect("mx1"))
+        self.conn_menu.addAction(act_conn_mx1)
+
+        act_conn_jules = QAction("☁️ Jules Devbox (100.77.191.66)", self.conn_menu)
+        act_conn_jules.triggered.connect(lambda: self.launch_peer_connect("jules"))
+        self.conn_menu.addAction(act_conn_jules)
 
         self.act_remmina = QAction("🖥️ Remmina VNC/RDP Kezelő indítása...", self.menu)
         self.act_remmina.triggered.connect(self.launch_remmina)
@@ -438,11 +454,13 @@ class VncTrayApp:
             2000
         )
 
-    def launch_peer_connect(self):
+    def launch_peer_connect(self, target=None):
         try:
-            cmd = "/usr/bin/mx-vnc-connect"
-            if os.path.exists(cmd):
-                subprocess.Popen([cmd], start_new_session=True)
+            cmd = ["/usr/bin/mx-vnc-connect"]
+            if target:
+                cmd.append(target)
+            if os.path.exists(cmd[0]):
+                subprocess.Popen(cmd, start_new_session=True)
             else:
                 self.launch_vncviewer()
         except Exception as e:

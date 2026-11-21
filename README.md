@@ -25,10 +25,12 @@
 ### 5. MX Biztonsági Irányítópult (`tools/mx-security-dashboard/`)
 - Nyitott portok, tűzfal (iptables/ufw), aktív hálózati szolgáltatások és bejelentkezési kísérletek vizsgálata.
 
-### 6. MX VNC Központ & Tálca Indikátor (`tools/mx-vnc-server/`)
+### 6. MX Kölcsönös VNC Központ & Tálca Indikátor (`vnc/`)
+- Kölcsönös, kétirányú távoli asztal elérés és vezérlés 3 csomópont között: `mx` (Phenom II), `mx-1` (Xeon E5-2640 v4) és `jules` (Devbox).
+- Intelligens LAN-első prioritású útvonalválasztás automatikus Tailscale VPN failoverrel (`mx-vnc-connect`).
 - Valós idejű VNC szerver felügyelet a KDE tálcán (`🟢 Figyel :5900`, `🔵 Csatlakozva`, `🔴 Leállítva`).
-- Helyi LAN (`192.168.1.105:5900`) és Tailscale VPN (`100.118.197.74:5900`) címek egykattintásos vágólapra másolása.
-- Kliens és gazda végpont: egykattintásos Remmina VNC/RDP kapcsolatkezelő és TigerVNC gyors-kliens indítás.
+- Helyi LAN (`192.168.1.x:5900`) és Tailscale VPN (`100.x.x.x:5900`) címek egykattintásos vágólapra másolása.
+- Részletes rendszerdokumentáció és csomagépítő a [`vnc/README.md`](vnc/README.md) fájlban.
 - Headless működés támogatása: monitor, billentyűzet és egér nélküli rendszerindítás virtuális 1080p DP-1 kerettel.
 - Párhuzamos bemenetkezelés: a távoli vezérlés és a helyi fizikai perifériák egyidejűleg használhatók.
 
