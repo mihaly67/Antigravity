@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# MX VNC Smart Connector - Auto LAN / Tailscale Failover
+# MX VNC Smart Connector - Auto LAN / Tailscale Failover & Loop Protection
 # Kölcsönös háromgépes távvezérlés: mx, mx-1, jules
 # Kompatibilis: Debian 12 / MX Linux 23 / SysVinit / X11
 
@@ -70,6 +70,27 @@ else
         TARGET="$PEER_TS:5900"
         CONN_TYPE="Tailscale VPN"
     fi
+fi
+
+# 1. Védelem: Rekurzív hurok (végtelen tükörhatás) megakadályozása
+PEER_IP=$(echo "$TARGET" | cut -d: -f1)
+if ss -tnp 'sport = :5900' 2>/dev/null | grep -q "$PEER_IP"; then
+    MSG="A célgép ($PEER_NAME) jelenleg távolról vezérli ezt a képernyőt!\nA visszacsatlakozás végtelen tükörhurkot okozna."
+    if which notify-send >/dev/null 2>&1; then
+        notify-send -u critical -i dialog-error "VNC Hurok Védelem" "$MSG" -t 5000 2>/dev/null || true
+    fi
+    echo -e "\e[1;31mHIBA: $MSG\e[0m" >&2
+    exit 1
+fi
+
+# 2. Védelem: Dupla/halmozott ablak megnyitás kivédése
+if pgrep -f "vncviewer.*$TARGET" >/dev/null 2>&1; then
+    MSG="Már fut egy aktív VNC kapcsolat a következő felé: $TARGET"
+    if which notify-send >/dev/null 2>&1; then
+        notify-send -i dialog-information "VNC Figyelmeztetés" "$MSG" -t 3000 2>/dev/null || true
+    fi
+    echo "$MSG"
+    exit 0
 fi
 
 # Jelszófájl megkeresése vagy létrehozása (alapértelmezett: 1104)
