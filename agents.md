@@ -172,7 +172,14 @@ A rendszer felkészítve teljes monitor-, billentyűzet- és egérmentes (headle
    - Ezért az Antigravity VS Code bővítmény ellenőrzi a `/proc/cpuinfo` zászlókat, és megtagadja a helyi bináris indítását AVX hiányában.
 2. **A Két Hivatalos és Működőképes Megoldás:**
    - **1. Megoldás (Ajánlott - VNC Távvezérlés):** Az asztalon lévő `mx-vnc-connect` ikonnal a Phenom gép csatlakozik a 20-szálas Xeon E5-2640 v4 gazdagéphez. Az Antigravity teljes sebességgel, natív AVX2 gyorsítással fut a Xeonon, míg a Phenom gépen a megjelenítés 0-5% terhelést jelent.
-   - **2. Megoldás (VS Code Remote-SSH):** Az `mx` gép VS Code-jába feltelepítésre került az `ms-vscode-remote.remote-ssh` bővítmény, és bekonfigurálva a `~/.ssh/config` (`Host mx-1`). Amikor a helyi VS Code csatlakozik a gazdagéphez, a teljes Antigravity motor a Xeon processzoron fut, a Phenom gép csak a szerkesztőfelületet rendereli.
+   - **2. Megoldás (VS Code Remote-SSH natív ablakban - Élesítve és Tesztelve):**
+     - Az `mx` gép VS Code-jába feltelepítésre került az `ms-vscode-remote.remote-ssh` kiegészítő.
+     - Az `mx` gép SSH konfigurációjába (`~/.ssh/config`) felvéve a `Host mx-1` jelszómentes kulcsos kapcsolattal.
+     - A gazdagépen (`mx-1`) inicializálva a `~/.vscode-server` környezet és szimbolikus linkkel becsatolva a `google.google-antigravity` bővítmény.
+     - Az `mx` gép asztalára kihelyezve a közvetlen indítóikon:
+       **`/home/Misi/Asztal/Antigravity_Xeon_Workspace.desktop`**
+       (`code --folder-uri "vscode-remote://ssh-remote+mx-1/home/misi"`).
+     - Egyetlen kattintással megnyitja a távoli Xeon munkamenetet, ahol az Antigravity teljes AVX2 sebességgel fut a 20-szálas processzoron, a Phenom gép pedig csak a grafikus felületet rajzolja ki hiba nélkül.
 
 ---
 
