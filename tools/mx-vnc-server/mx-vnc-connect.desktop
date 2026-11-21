@@ -1,0 +1,11 @@
+[Desktop Entry]
+Name=MX Távoli Asztal Kapcsolat
+GenericName=VNC Remote Desktop Client
+Comment=Automatikus egykattintásos VNC távoli asztal elérés a másik géphez (LAN / Tailscale)
+Exec=/usr/bin/mx-vnc-connect
+Icon=preferences-desktop-remote-desktop
+Terminal=false
+Type=Application
+Categories=Network;RemoteAccess;
+StartupNotify=true
+X-KDE-SubstituteUID=false

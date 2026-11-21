@@ -1,0 +1,76 @@
+#!/bin/sh
+### BEGIN INIT INFO
+# Provides:          x11vnc
+# Required-Start:    $network $local_fs $remote_fs
+# Required-Stop:     $network $local_fs $remote_fs
+# Should-Start:      sddm lightdm
+# Default-Start:     2 3 4 5
+# Default-Stop:      0 1 6
+# Short-Description: Start x11vnc VNC server daemon
+# Description:       x11vnc server provides remote access to display :0
+### END INIT INFO
+
+NAME="x11vnc"
+DAEMON="/usr/local/bin/x11vnc-service.sh"
+PIDFILE="/var/run/x11vnc-service.pid"
+SCRIPTNAME="/etc/init.d/$NAME"
+
+. /lib/lsb/init-functions
+
+do_start() {
+    if [ -f "$PIDFILE" ] && kill -0 $(cat "$PIDFILE") 2>/dev/null; then
+        echo "$NAME is already running."
+        return 1
+    fi
+    echo "Starting $NAME daemon..."
+    start-stop-daemon --start --background --make-pidfile --pidfile "$PIDFILE" \
+        --startas /bin/bash -- "$DAEMON"
+    return 0
+}
+
+do_stop() {
+    echo "Stopping $NAME daemon..."
+    if [ -f "$PIDFILE" ]; then
+        start-stop-daemon --stop --quiet --oknodo --pidfile "$PIDFILE"
+        rm -f "$PIDFILE"
+    fi
+    pkill -f "/usr/bin/x11vnc.*5900" 2>/dev/null || true
+    pkill -f "$DAEMON" 2>/dev/null || true
+    return 0
+}
+
+do_status() {
+    if ss -tlpn 'sport = :5900' 2>/dev/null | grep -q LISTEN; then
+        echo "$NAME (port 5900) is running."
+        return 0
+    elif [ -f "$PIDFILE" ] && kill -0 $(cat "$PIDFILE") 2>/dev/null; then
+        echo "$NAME supervisor is running (waiting for X11 on :0)."
+        return 0
+    else
+        echo "$NAME is not running."
+        return 3
+    fi
+}
+
+case "$1" in
+    start)
+        do_start
+        ;;
+    stop)
+        do_stop
+        ;;
+    restart|force-reload)
+        do_stop
+        sleep 1
+        do_start
+        ;;
+    status)
+        do_status
+        ;;
+    *)
+        echo "Usage: $SCRIPTNAME {start|stop|restart|force-reload|status}" >&2
+        exit 3
+        ;;
+esac
+
+exit 0

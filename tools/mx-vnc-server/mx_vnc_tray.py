@@ -373,11 +373,18 @@ class VncTrayApp:
         self.menu.addSeparator()
 
         # Kliens opciók
+        self.act_connect_peer = QAction("🚀 Csatlakozás a másik géphez (Auto LAN / VPN)", self.menu)
+        font_conn = QFont()
+        font_conn.setBold(True)
+        self.act_connect_peer.setFont(font_conn)
+        self.act_connect_peer.triggered.connect(self.launch_peer_connect)
+        self.menu.addAction(self.act_connect_peer)
+
         self.act_remmina = QAction("🖥️ Remmina VNC/RDP Kezelő indítása...", self.menu)
         self.act_remmina.triggered.connect(self.launch_remmina)
         self.menu.addAction(self.act_remmina)
 
-        self.act_vncviewer = QAction("⚡ TigerVNC Gyors-kliens indítása...", self.menu)
+        self.act_vncviewer = QAction("⚡ TigerVNC Kézi kapcsolódás...", self.menu)
         self.act_vncviewer.triggered.connect(self.launch_vncviewer)
         self.menu.addAction(self.act_vncviewer)
 
@@ -431,6 +438,16 @@ class VncTrayApp:
             2000
         )
 
+    def launch_peer_connect(self):
+        try:
+            cmd = "/usr/bin/mx-vnc-connect"
+            if os.path.exists(cmd):
+                subprocess.Popen([cmd], start_new_session=True)
+            else:
+                self.launch_vncviewer()
+        except Exception as e:
+            self.tray.showMessage("Hiba", f"Kapcsolódás nem indítható: {e}", QSystemTrayIcon.Warning)
+
     def launch_remmina(self):
         try:
             subprocess.Popen(["remmina"], start_new_session=True)
@@ -444,23 +461,28 @@ class VncTrayApp:
             self.tray.showMessage("Hiba", f"TigerVNC nem indítható: {e}", QSystemTrayIcon.Warning)
 
     def start_server(self):
-        cmd = "/usr/local/bin/start-x11vnc.sh"
-        if os.path.exists(cmd):
-            subprocess.Popen([cmd], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, start_new_session=True)
-            self.tray.showMessage("VNC Kiszolgáló", "x11vnc szerver elindítva.", QSystemTrayIcon.Information, 2000)
+        if os.path.exists("/etc/init.d/x11vnc"):
+            subprocess.run(["sudo", "-n", "/etc/init.d/x11vnc", "start"], stderr=subprocess.DEVNULL)
+        elif os.path.exists("/usr/local/bin/x11vnc-service.sh"):
+            subprocess.Popen(["/usr/local/bin/x11vnc-service.sh"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, start_new_session=True)
+        self.tray.showMessage("VNC Kiszolgáló", "x11vnc kiszolgáló indítása folyamatban...", QSystemTrayIcon.Information, 2000)
         self.update_status()
 
     def stop_server(self):
+        if os.path.exists("/etc/init.d/x11vnc"):
+            subprocess.run(["sudo", "-n", "/etc/init.d/x11vnc", "stop"], stderr=subprocess.DEVNULL)
         subprocess.run(["pkill", "-f", "x11vnc.*5900"], stderr=subprocess.DEVNULL)
-        self.tray.showMessage("VNC Kiszolgáló", "x11vnc szerver leállítva.", QSystemTrayIcon.Warning, 2000)
+        subprocess.run(["pkill", "-f", "x11vnc-service.sh"], stderr=subprocess.DEVNULL)
+        self.tray.showMessage("VNC Kiszolgáló", "x11vnc kiszolgáló leállítva.", QSystemTrayIcon.Warning, 2000)
         self.update_status()
 
     def restart_server(self):
-        subprocess.run(["pkill", "-f", "x11vnc.*5900"], stderr=subprocess.DEVNULL)
-        cmd = "/usr/local/bin/start-x11vnc.sh"
-        if os.path.exists(cmd):
-            subprocess.Popen([cmd], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, start_new_session=True)
-        self.tray.showMessage("VNC Kiszolgáló", "x11vnc szerver újraindítva.", QSystemTrayIcon.Information, 2000)
+        if os.path.exists("/etc/init.d/x11vnc"):
+            subprocess.run(["sudo", "-n", "/etc/init.d/x11vnc", "restart"], stderr=subprocess.DEVNULL)
+        else:
+            self.stop_server()
+            self.start_server()
+        self.tray.showMessage("VNC Kiszolgáló", "x11vnc kiszolgáló újraindítva.", QSystemTrayIcon.Information, 2000)
         self.update_status()
 
     def toggle_server(self):

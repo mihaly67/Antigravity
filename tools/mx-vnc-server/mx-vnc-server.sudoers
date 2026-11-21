@@ -1,0 +1,1 @@
+ALL ALL=(ALL) NOPASSWD: /etc/init.d/x11vnc

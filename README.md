@@ -44,7 +44,7 @@ A legfrissebb előre fordított Debian csomagok a [`packages/`](file:///home/mis
 - `mx-hardware-monitor_1.0.8_all.deb`
 - `mx-ssh-monitor_1.1.3_all.deb`
 - `mx-security-dashboard_1.0.0_all.deb`
-- `mx-vnc-server_1.0.0_all.deb`
+- `mx-vnc-server_1.1.0_all.deb`
 - `mx-ram-cleaner_1.0.3_all.deb`
 - `mx-cpu-gpu-stress-test_1.1.8_all.deb`
 
