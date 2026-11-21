@@ -257,8 +257,8 @@ class VncInfoDialog(QDialog):
         info_text = (
             "• <b>Párhuzamos bemenet:</b> A távoli VNC és a helyi fizikai egér/billentyűzet "
             "egyszerre működik, egymás blokkolása nélkül.<br>"
-            "• <b>Monitor nélküli indítás (Headless):</b> A gép fizikai monitor és perifériák "
-            "nélkül is hiba nélkül indul (1080p DP-1 virtuális keret).<br>"
+            "• <b>Monitor nélküli üzem:</b> Kizárólag az MX-1 Xeon gazdagép dolgozik monitor nélkül (1080p DP-1 virtuális keret). "
+            "Az MX és a Jules gépek fizikai képernyővel rendelkeznek.<br>"
             "• <b>Kliens szoftverek:</b> Másik gépről elérhető Remmina, TigerVNC, TightVNC "
             "vagy RealVNC kliensekkel."
         )
@@ -384,16 +384,29 @@ class VncTrayApp:
 
         self.conn_menu.addSeparator()
 
-        act_conn_mx = QAction("🖥️ MX Másik Gép (192.168.1.106 / 100.95.215.75)", self.conn_menu)
+        is_mx = (self.local_ip == "192.168.1.106" or self.tailscale_ip == "100.95.215.75")
+        is_mx1 = (self.local_ip == "192.168.1.105" or self.tailscale_ip == "100.118.197.74")
+        is_jules = (self.local_ip == "192.168.1.104" or self.tailscale_ip == "100.77.191.66")
+
+        lbl_mx = "🖥️ MX Másik Gép (192.168.1.106 / 100.95.215.75)" + (" [Ez a helyi gép]" if is_mx else "")
+        act_conn_mx = QAction(lbl_mx, self.conn_menu)
         act_conn_mx.triggered.connect(lambda: self.launch_peer_connect("mx"))
+        if is_mx:
+            act_conn_mx.setEnabled(False)
         self.conn_menu.addAction(act_conn_mx)
 
-        act_conn_mx1 = QAction("🚀 MX-1 Xeon Gazdagép (192.168.1.105 / 100.118.197.74)", self.conn_menu)
+        lbl_mx1 = "🚀 MX-1 Xeon Gazdagép (192.168.1.105 / 100.118.197.74)" + (" [Ez a helyi gép]" if is_mx1 else "")
+        act_conn_mx1 = QAction(lbl_mx1, self.conn_menu)
         act_conn_mx1.triggered.connect(lambda: self.launch_peer_connect("mx1"))
+        if is_mx1:
+            act_conn_mx1.setEnabled(False)
         self.conn_menu.addAction(act_conn_mx1)
 
-        act_conn_jules = QAction("☁️ Jules Devbox (100.77.191.66)", self.conn_menu)
+        lbl_jules = "☁️ Jules Munkaállomás (192.168.1.104 / 100.77.191.66)" + (" [Ez a helyi gép]" if is_jules else "")
+        act_conn_jules = QAction(lbl_jules, self.conn_menu)
         act_conn_jules.triggered.connect(lambda: self.launch_peer_connect("jules"))
+        if is_jules:
+            act_conn_jules.setEnabled(False)
         self.conn_menu.addAction(act_conn_jules)
 
         self.act_remmina = QAction("🖥️ Remmina VNC/RDP Kezelő indítása...", self.menu)

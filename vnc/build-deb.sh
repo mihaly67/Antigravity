@@ -15,10 +15,10 @@ mkdir -p "$BUILD_DIR/usr/bin"
 mkdir -p "$BUILD_DIR/usr/local/bin"
 mkdir -p "$BUILD_DIR/usr/share/applications"
 mkdir -p "$BUILD_DIR/usr/share/icons/hicolor/scalable/apps"
+mkdir -p "$BUILD_DIR/usr/share/mx-vnc-server"
 mkdir -p "$BUILD_DIR/etc/init.d"
 mkdir -p "$BUILD_DIR/etc/xdg/autostart"
 mkdir -p "$BUILD_DIR/etc/sudoers.d"
-mkdir -p "$BUILD_DIR/etc/X11/xorg.conf.d"
 mkdir -p "$PACKAGE_DIR"
 
 # Fájlok másolása
@@ -32,7 +32,7 @@ cp "$SCRIPT_DIR/mx-vnc-server.desktop" "$BUILD_DIR/usr/share/applications/"
 cp "$SCRIPT_DIR/mx-vnc-connect.desktop" "$BUILD_DIR/usr/share/applications/"
 cp "$SCRIPT_DIR/mx-vnc-server.desktop" "$BUILD_DIR/etc/xdg/autostart/"
 cp "$SCRIPT_DIR/mx-vnc-server.svg" "$BUILD_DIR/usr/share/icons/hicolor/scalable/apps/"
-cp "$SCRIPT_DIR/10-monitor.conf" "$BUILD_DIR/etc/X11/xorg.conf.d/"
+cp "$SCRIPT_DIR/10-monitor.conf" "$BUILD_DIR/usr/share/mx-vnc-server/"
 
 # Jogosultságok beállítása
 chmod 755 "$BUILD_DIR/usr/bin/"*
@@ -41,6 +41,7 @@ chmod 755 "$BUILD_DIR/etc/init.d/x11vnc"
 chmod 644 "$BUILD_DIR/usr/share/applications/"*
 chmod 644 "$BUILD_DIR/etc/xdg/autostart/"*
 chmod 644 "$BUILD_DIR/usr/share/icons/hicolor/scalable/apps/"*
+chmod 644 "$BUILD_DIR/usr/share/mx-vnc-server/"*
 chmod 440 "$BUILD_DIR/etc/sudoers.d/mx-vnc-server"
 
 # DEBIAN/control
@@ -68,6 +69,20 @@ if [ -f /etc/sudoers.d/mx-vnc-server ]; then
     chmod 0440 /etc/sudoers.d/mx-vnc-server
 fi
 
+# Headless Xorg konfiguráció KIZÁRÓLAG az mx-1 gépen
+# (Mivel csak az mx-1 dolgozik monitor nélkül; jules és mx fizikai monitorral rendelkezik)
+HOST_NAME=$(hostname)
+MY_LAN=$(ip route get 1.1.1.1 2>/dev/null | awk '{print $7; exit}')
+MY_TS=$(tailscale ip -4 2>/dev/null)
+
+if [ "$HOST_NAME" = "mx-1" ] || [ "$MY_LAN" = "192.168.1.105" ] || [ "$MY_TS" = "100.118.197.74" ]; then
+    mkdir -p /etc/X11/xorg.conf.d
+    cp -f /usr/share/mx-vnc-server/10-monitor.conf /etc/X11/xorg.conf.d/10-monitor.conf
+else
+    # jules és mx fizikai kijelzővel rendelkezik, nem szabad felülbírálni az Xorg konfigurációt!
+    rm -f /etc/X11/xorg.conf.d/10-monitor.conf
+fi
+
 # SysVinit szolgáltatás aktiválása runlevel 2,3,4,5-ön
 chmod 755 /etc/init.d/x11vnc 2>/dev/null || true
 chmod 755 /usr/local/bin/x11vnc-service.sh 2>/dev/null || true
@@ -81,11 +96,17 @@ for u_home in /home/*; do
         user_name=$(basename "$u_home")
         chown "$user_name:$user_name" "$u_home/Asztal/mx-vnc-connect.desktop" 2>/dev/null || true
     fi
+    if [ -d "$u_home/Desktop" ]; then
+        cp -f /usr/share/applications/mx-vnc-connect.desktop "$u_home/Desktop/mx-vnc-connect.desktop"
+        chmod +x "$u_home/Desktop/mx-vnc-connect.desktop"
+        user_name=$(basename "$u_home")
+        chown "$user_name:$user_name" "$u_home/Desktop/mx-vnc-connect.desktop" 2>/dev/null || true
+    fi
 done
 
 # Alapértelmezett VNC jelszó (1104) biztosítása
 for u_home in /home/*; do
-    if [ -d "$u_home" ]; then
+    if [ -d "$u_home" ] && [ "$(basename "$u_home")" != "lost+found" ]; then
         mkdir -p "$u_home/.vnc"
         if [ ! -f "$u_home/.vnc/passwd" ] && which x11vnc >/dev/null 2>&1; then
             x11vnc -storepasswd "1104" "$u_home/.vnc/passwd" >/dev/null 2>&1 || true
@@ -116,8 +137,10 @@ cat << 'EOF' > "$BUILD_DIR/DEBIAN/postrm"
 if [ "$1" = "purge" ]; then
     update-rc.d -f x11vnc remove 2>/dev/null || true
     rm -f /etc/sudoers.d/mx-vnc-server
+    rm -f /etc/X11/xorg.conf.d/10-monitor.conf
     for u_home in /home/*; do
         rm -f "$u_home/Asztal/mx-vnc-connect.desktop"
+        rm -f "$u_home/Desktop/mx-vnc-connect.desktop"
     done
 fi
 exit 0

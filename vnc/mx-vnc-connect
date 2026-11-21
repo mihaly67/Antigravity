@@ -19,9 +19,9 @@ if [ -n "$1" ]; then
             PEER_LAN="192.168.1.105"
             PEER_TS="100.118.197.74"
             ;;
-        jules)
-            PEER_NAME="Jules Devbox (100.77.191.66)"
-            PEER_LAN=""
+        jules|104)
+            PEER_NAME="Jules Munkaállomás (192.168.1.104)"
+            PEER_LAN="192.168.1.104"
             PEER_TS="100.77.191.66"
             ;;
         *)
@@ -33,18 +33,23 @@ if [ -n "$1" ]; then
 else
     # Automatikus peer kiválasztás a helyi IP alapján:
     if [ "$MY_LAN" = "192.168.1.105" ] || [ "$MY_TS" = "100.118.197.74" ]; then
-        # mx-1 gépen vagyunk -> a cél az mx
+        # mx-1 gépen vagyunk -> a cél az mx (másik helyi gép)
         PEER_NAME="MX Másik Gép (192.168.1.106)"
         PEER_LAN="192.168.1.106"
         PEER_TS="100.95.215.75"
     elif [ "$MY_LAN" = "192.168.1.106" ] || [ "$MY_TS" = "100.95.215.75" ]; then
-        # mx gépen vagyunk -> a cél az mx-1
+        # mx gépen vagyunk -> a cél az mx-1 (gazdagép)
+        PEER_NAME="MX-1 Xeon Gazdagép (192.168.1.105)"
+        PEER_LAN="192.168.1.105"
+        PEER_TS="100.118.197.74"
+    elif [ "$MY_LAN" = "192.168.1.104" ] || [ "$MY_TS" = "100.77.191.66" ]; then
+        # jules gépen vagyunk -> a cél az mx-1 Xeon gazdagép
         PEER_NAME="MX-1 Xeon Gazdagép (192.168.1.105)"
         PEER_LAN="192.168.1.105"
         PEER_TS="100.118.197.74"
     else
-        # jules vagy külső gépen vagyunk -> alapértelmezett a Xeon gazdagép
-        PEER_NAME="MX-1 Xeon Gazdagép (100.118.197.74)"
+        # külső gépen vagyunk -> alapértelmezett a Xeon gazdagép
+        PEER_NAME="MX-1 Xeon Gazdagép (192.168.1.105)"
         PEER_LAN="192.168.1.105"
         PEER_TS="100.118.197.74"
     fi
