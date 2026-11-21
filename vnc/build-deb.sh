@@ -18,6 +18,7 @@ mkdir -p "$BUILD_DIR/usr/share/icons/hicolor/scalable/apps"
 mkdir -p "$BUILD_DIR/etc/init.d"
 mkdir -p "$BUILD_DIR/etc/xdg/autostart"
 mkdir -p "$BUILD_DIR/etc/sudoers.d"
+mkdir -p "$BUILD_DIR/etc/X11/xorg.conf.d"
 mkdir -p "$PACKAGE_DIR"
 
 # Fájlok másolása
@@ -31,6 +32,7 @@ cp "$SCRIPT_DIR/mx-vnc-server.desktop" "$BUILD_DIR/usr/share/applications/"
 cp "$SCRIPT_DIR/mx-vnc-connect.desktop" "$BUILD_DIR/usr/share/applications/"
 cp "$SCRIPT_DIR/mx-vnc-server.desktop" "$BUILD_DIR/etc/xdg/autostart/"
 cp "$SCRIPT_DIR/mx-vnc-server.svg" "$BUILD_DIR/usr/share/icons/hicolor/scalable/apps/"
+cp "$SCRIPT_DIR/10-monitor.conf" "$BUILD_DIR/etc/X11/xorg.conf.d/"
 
 # Jogosultságok beállítása
 chmod 755 "$BUILD_DIR/usr/bin/"*

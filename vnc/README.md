@@ -143,3 +143,83 @@ nc -zv -w 2 100.95.215.75 5900
 nc -zv -w 2 192.168.1.105 5900
 nc -zv -w 2 100.118.197.74 5900
 ```
+
+---
+
+## 6. Monitor Nélküli (Headless) és Kijelző Hibaelhárítás (NVIDIA NVS 310 / MX-1)
+
+Az `mx-1` gép (HP Z440 Workstation, NVIDIA NVS 310 kártya `nouveau` meghajtóval) monitor nélküli (headless) VNC használatakor, illetve passzív átalakítók esetén speciális konfigurációt igényel.
+
+### 6.1. Feltárt Gyökérokok (Root Cause Analysis)
+
+1. **Hiányzó EDID adat és hibás felbontás:**
+   * Ha nincs csatlakoztatva monitor, vagy a DP->HDMI / DP->VGA adapter nem ad át DDC jelet, az EDID mérete 0 byte.
+   * Xorg konfiguráció nélkül az automatikus módválasztó egy elavult CRT módot (**2048x1536 @ 60Hz**) kényszerít a kimenetre, amit a modern LCD monitorok nem képesek megjeleníteni (*Out of Range* / fekete képernyő).
+2. **Kernel Driver Összeomlás (Crash) hibás GRUB beállítás miatt:**
+   * Ha a GRUB-ban a `video=DP-1:1920x1080@60e` paraméterrel próbáljuk kényszeríteni a portot, a `nouveau` driver az indulás 10. másodpercében elbukja a DisplayPort link traininget, és **0-val való osztási hibával összeomlik a kernelben** (`divide error: 0000 [#1] nv50_disp_super_2_2`).
+   * Ez a hiba teljesen lefagyasztja a GPU kijelzővezérlőjét (`DRM: core notifier timeout`), és a kártya semmilyen képet nem tud kiküldeni, VNC-n sem.
+
+### 6.2. A Helyes és Működő Megoldás
+
+#### 1. A GRUB tisztítása
+A kernel parancssorából el kell távolítani a kártékony `video=...` opciót:
+Fájl: `/etc/default/grub`
+```bash
+GRUB_CMDLINE_LINUX_DEFAULT="quiet splash"
+```
+Módosítás után érvényesíteni kell:
+```bash
+sudo update-grub
+```
+
+#### 2. Xorg Monitorkonfiguráció (`10-monitor.conf`)
+A felbontást nem a kernelben, hanem az Xorg szintjén kell rögzíteni. A tárolóban megtalálható a [`10-monitor.conf`](file:///home/misi/Antigravity/vnc/10-monitor.conf) fájl, melyet az `/etc/X11/xorg.conf.d/10-monitor.conf` helyre kell elhelyezni:
+
+```xorg
+Section "ServerFlags"
+    Option "BlankTime" "0"
+    Option "StandbyTime" "0"
+    Option "SuspendTime" "0"
+    Option "OffTime" "0"
+    Option "DPMS" "false"
+EndSection
+
+Section "Monitor"
+    Identifier "DP-1"
+    Modeline "1920x1080" 148.50 1920 2008 2052 2200 1080 1084 1089 1125 +hsync +vsync
+    Option "Enable" "true"
+    Option "PreferredMode" "1920x1080"
+    Option "Primary" "true"
+EndSection
+
+Section "Device"
+    Identifier "Card0"
+    Driver "modesetting"
+    Option "Monitor-DP-1" "DP-1"
+EndSection
+
+Section "Screen"
+    Identifier "Screen0"
+    Device "Card0"
+    Monitor "DP-1"
+    DefaultDepth 24
+    SubSection "Display"
+        Depth 24
+        Virtual 1920 1080
+        Modes "1920x1080"
+    EndSubSection
+EndSection
+```
+
+* **`Option "Enable" "true"` & `Virtual 1920 1080`:** Gondoskodik róla, hogy a framebuffer akkor is pontosan 1920x1080 méretű maradjon a VNC számára, ha fizikailag nincs monitor bedugva a DP-1 portba.
+* **`DPMS "false"` & `BlankTime "0"`:** Megakadályozza, hogy tétlenség esetén a kijelző lekapcsoljon és fekete képet közvetítsen a VNC.
+
+#### 3. KDE Energiagazdálkodás
+A `~/.config/powermanagementprofilesrc` fájlban a tétlenségi időzítőket 0-ra kell állítani, hogy a KDE se küldje alvó állapotba a képernyőt:
+```ini
+[AC][DPMSControl]
+idleTime=0
+[AC][SuspendSession]
+idleTime=0
+```
+
