@@ -28,7 +28,6 @@ while true; do
                 -forever \
                 -shared \
                 -repeat \
-                -noxdamage \
                 -rfbport 5900
         fi
     fi
