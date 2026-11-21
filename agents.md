@@ -115,3 +115,4 @@ A válasz a fizikai és architekturális tényekben rejlik:
    - A VSCode-ból minden felesleges C/C++ és Azure bővítmény eltávolítva.
    - A Pylance memóriahasználata `openFilesOnly` módra korlátozva.
    - Keresési és fájlfigyelési tiltólisták aktívak a binárisokra, naplókra és ideiglenes fájlokra.
+
