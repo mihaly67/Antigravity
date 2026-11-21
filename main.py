@@ -1223,7 +1223,7 @@ def main():
         print("  -h, --help                Súgó megjelenítése")
         sys.exit(0)
 
-    start_minimized = "--minimized" in sys.argv or "--tray" in sys.argv or "-m" in sys.argv
+    start_minimized = "--minimized" in sys.argv or "--tray" in sys.argv or "-m" in sys.argv or "--hidden" in sys.argv
     start_compact = "--compact" in sys.argv or "-c" in sys.argv
 
     app = QApplication(sys.argv)
